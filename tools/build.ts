@@ -1,19 +1,21 @@
 import { build, BuildOptions } from "esbuild";
-import { outputFile } from "fs-extra";
+import { copyFile, outputFile } from "fs-extra";
 import { resolve } from "path";
 import { cwd } from "process";
 import * as packageJson from "../package.json";
-/*  
-    shx cp package.json dist/package.json
-    shx cp README.md dist/README.md
-    node buildhelper/package-json-preparer.js package.json dist/package.json
-*/
+
 const cwdPath = (path: string) => {
   return resolve(cwd(), path);
 };
 
 class Program {
   static async main(production: boolean) {
+    await this.buildLibrary(production);
+    await this.createPackageJson();
+    await this.copyDocs();
+  }
+
+  private static async buildLibrary(production: boolean) {
     const commonBuildOpts: BuildOptions = {
       entryPoints: [cwdPath("./src/index.ts")],
       platform: "node",
@@ -26,19 +28,15 @@ class Program {
       ...commonBuildOpts,
       format: "esm",
       outfile: cwdPath("./dist/mjs/index.js"),
-      tsconfig: cwdPath("./tsconfig-mjs.json"),
     });
     await build({
       ...commonBuildOpts,
       format: "cjs",
       outfile: cwdPath("./dist/cjs/index.js"),
-      tsconfig: cwdPath("./tsconfig-cjs.json"),
     });
-
-    await this.preparePackageJson();
   }
 
-  private static async preparePackageJson() {
+  private static async createPackageJson() {
     const {
       name,
       version,
@@ -80,6 +78,10 @@ class Program {
       cwdPath("./dist/package.json"),
       JSON.stringify(output, null, production ? undefined : 2)
     );
+  }
+
+  private static async copyDocs() {
+    return copyFile(cwdPath("./README.md"), cwdPath("./dist/README.md"));
   }
 }
 
