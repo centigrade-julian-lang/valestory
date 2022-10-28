@@ -11,7 +11,8 @@ export interface TestoryConfiguration {
   isEqual: (a: any, b: any) => void;
 }
 
-export type TestApi = TargetedExtension;
+export type TestApi = TargetedExtension & TestImport;
+export type TestImport = (state: TestState) => TestExtendingOrExpecter<unknown>;
 export type TargetedExtension = <T extends Ref<any>>(
   target: T
 ) => TargetActions<T>;
@@ -26,7 +27,7 @@ export type TargetAction<T> = (
   ...actions: Extension<T>[]
 ) => TestExtendingOrExpecter<T>;
 
-export interface TestExtendingOrExpecter<T> {
+export interface TestExtendingOrExpecter<T> extends TestState {
   and: Extensions<T>;
   expect: TestExpectation;
 }

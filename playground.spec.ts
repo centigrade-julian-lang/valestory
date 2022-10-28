@@ -1,4 +1,4 @@
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, tap } from "rxjs";
 import { when } from "./src";
 import { state } from "./src/actions";
 import { TestoryConfig } from "./src/config";
@@ -16,7 +16,10 @@ interface Person {
 
 class ContactBook {
   private readonly contacts = new BehaviorSubject<Person[]>([]);
-  public readonly contacts$ = this.contacts.asObservable();
+  public readonly contacts$ = this.contacts.pipe(
+    tap((c) => (this.numberOfContacts = c.length))
+  );
+  public numberOfContacts = this.contacts.value.length;
 }
 
 const service = new ContactBook();
@@ -40,10 +43,38 @@ describe("ContactBook", () => {
     static service = () => service;
   }
 
-  it("should invoke extensions (basic)", async () =>
+  it("should invoke extensions (basic)", () =>
     when(the.service)
-      .has(state({ contacts$: 42 as any }))
+      .has(state({ numberOfContacts: 42 }))
       .and(somethingAsync())
       .expect(the.service)
-      .to(haveState({ contacts$: 42 as any })));
+      .to(haveState({ numberOfContacts: 42 })));
+
+  it("should allow for chaining (action)", async () => {
+    const with42Contacts = when(the.service).has(
+      state({ numberOfContacts: 42 })
+    );
+
+    await when(with42Contacts)
+      .expect(the.service)
+      .to(haveState({ numberOfContacts: 42 }));
+  });
+
+  it("should allow for intermediate checks", async () => {
+    const was = { executed: false };
+    const check = createExtension(() => {
+      was.executed = true;
+    });
+
+    const with42Contacts = when(the.service)
+      .has(state({ numberOfContacts: 42 }))
+      .expect(the.service)
+      .will(check);
+
+    await when(with42Contacts)
+      .and(the.service)
+      .has(state({ numberOfContacts: 12 }))
+      .expect(() => was)
+      .to(haveState({ executed: true }));
+  });
 });

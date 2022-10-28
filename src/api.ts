@@ -13,6 +13,10 @@ const createTestApi = <T>(
   subjectOrTestState: Ref<T> | TestState,
   baseState: TestState = { steps: [] }
 ): TargetActions<T> => {
+  if (isTestState(subjectOrTestState)) {
+    return createActor(undefined!, subjectOrTestState)() as any;
+  }
+
   return {
     has: createActor(subjectOrTestState, baseState),
     does: createActor(subjectOrTestState, baseState),
@@ -26,8 +30,9 @@ const createActor =
     addTestStep(testState, actions, subject);
 
     const extendOrExpectApi: TestExtendingOrExpecter<TSubject> = {
+      ...testState,
       and: (<R extends Ref<any>>(
-        refOrFirstAction: R | Extension<TSubject>,
+        refOrTestStateOrFirstAction: R | TestState | Extension<TSubject>,
         ...restOfActions: Extension<TSubject>[]
       ) => {
         if (isExtensionFn<TSubject>(refOrTestStateOrFirstAction)) {
@@ -35,6 +40,14 @@ const createActor =
           return createActor(subject, testState)(
             refOrTestStateOrFirstAction,
             ...restOfActions
+          );
+        } else if (isTestState(refOrTestStateOrFirstAction)) {
+          // case: test-state import
+          return createTestApi(
+            subject,
+            updatePartially(testState, {
+              steps: testState.steps.concat(refOrTestStateOrFirstAction.steps),
+            })
           );
         } else {
           // case: target-ref
@@ -87,8 +100,19 @@ function isExtensionFn<T>(value: any): value is Extension<T> {
   );
 }
 
+function isTestState(value: any): value is TestState {
+  return "steps" in value && Array.isArray(value.steps);
+}
+
 async function executeTest(testState: TestState): Promise<void> {
   for (const step of testState.steps) {
     await step();
   }
+}
+
+function updatePartially<T extends {}>(original: T, update: Partial<T>) {
+  return {
+    ...original,
+    ...update,
+  };
 }
