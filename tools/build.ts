@@ -39,15 +39,20 @@ class Program {
   }
 
   private static async preparePackageJson() {
-    const { name, version, author, description, keywords, license } =
-      packageJson;
+    const {
+      name,
+      version,
+      author,
+      description,
+      keywords,
+      license,
+      homepage,
+      repository,
+    } = packageJson;
 
     const marketing = {
-      homepage: "",
-      repository: {
-        type: "git",
-        url: "https://github.com/Centigrade/ngtx.git",
-      },
+      homepage,
+      repository,
     };
     const logistics = {
       files: ["**/*"],
