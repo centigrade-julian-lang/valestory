@@ -50,7 +50,7 @@ class Program {
       },
     };
     const logistics = {
-      files: "**/*",
+      files: ["**/*"],
       main: "./cjs/index.js",
       module: "./mjs/index.js",
       exports: {
@@ -73,7 +73,7 @@ class Program {
 
     await outputFile(
       cwdPath("./dist/package.json"),
-      JSON.stringify(output, null, 2)
+      JSON.stringify(output, null, production ? undefined : 2)
     );
   }
 }
