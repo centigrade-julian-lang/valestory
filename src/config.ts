@@ -14,9 +14,3 @@ export class TestoryConfig {
     return this.current.get(property);
   }
 }
-
-export const check = (value: any) => ({
-  equals: (b: any) => {
-    return TestoryConfig.get("isEqual")(value, b);
-  },
-});

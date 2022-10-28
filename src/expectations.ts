@@ -1,4 +1,4 @@
-import { check } from "./config";
+import { check } from "./platform";
 import { Ref } from "./types";
 import { createExtension } from "./utility";
 
