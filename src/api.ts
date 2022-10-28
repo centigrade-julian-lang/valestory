@@ -43,12 +43,12 @@ const createActor =
           );
         } else if (isTestState(refOrTestStateOrFirstAction)) {
           // case: test-state import
-          return createTestApi(
+          return createActor(
             subject,
             updatePartially(testState, {
               steps: testState.steps.concat(refOrTestStateOrFirstAction.steps),
             })
-          );
+          )();
         } else {
           // case: target-ref
           return createTestApi(refOrTestStateOrFirstAction, testState);

@@ -43,6 +43,12 @@ describe("ContactBook", () => {
     static service = () => service;
   }
 
+  class once {
+    static serviceHasState(stateDef: any) {
+      return when(the.service).does(state(stateDef));
+    }
+  }
+
   it("should invoke extensions (basic)", () =>
     when(the.service)
       .has(state({ numberOfContacts: 42 }))
@@ -50,12 +56,26 @@ describe("ContactBook", () => {
       .expect(the.service)
       .to(haveState({ numberOfContacts: 42 })));
 
-  it("should allow for chaining (action)", async () => {
-    const with42Contacts = when(the.service).has(
-      state({ numberOfContacts: 42 })
-    );
+  it.each([
+    () => when(the.service).has(state({ numberOfContacts: 42 })),
+    () => when(the.service).is(state({ numberOfContacts: 42 })),
+    () => when(the.service).does(state({ numberOfContacts: 42 })),
+  ])("should allow for chaining (action)", async (with42Contacts) => {
+    await when(with42Contacts())
+      .expect(the.service)
+      .to(haveState({ numberOfContacts: 42 }));
+  });
 
-    await when(with42Contacts)
+  it("should allow for chaining (external classes, via when)", () => {
+    when(once.serviceHasState({ numberOfContacts: 42 }))
+      .expect(the.service)
+      .to(haveState({ numberOfContacts: 42 }));
+  });
+
+  it("should allow for chaining (external classes, via and)", () => {
+    when(the.service)
+      .does()
+      .and(once.serviceHasState({ numberOfContacts: 42 }))
       .expect(the.service)
       .to(haveState({ numberOfContacts: 42 }));
   });
