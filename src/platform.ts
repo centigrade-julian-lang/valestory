@@ -1,7 +1,7 @@
-import { TestoryConfig } from "./config";
+import { ValestoryConfig } from "./config";
 
 export const check = (value: any) => ({
   equals: (b: any) => {
-    return TestoryConfig.get("isEqual")(value, b);
+    return ValestoryConfig.get("isEqual")(value, b);
   },
 });

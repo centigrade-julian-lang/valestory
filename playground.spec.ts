@@ -1,7 +1,7 @@
 import { BehaviorSubject, tap } from "rxjs";
 import { when } from "./src";
 import { state } from "./src/actions";
-import { TestoryConfig } from "./src/config";
+import { ValestoryConfig } from "./src/config";
 import { haveState } from "./src/expectations";
 import { createExtension } from "./src/utility";
 
@@ -24,7 +24,7 @@ class ContactBook {
 
 const service = new ContactBook();
 
-TestoryConfig.override({
+ValestoryConfig.override({
   isEqual: (a: any, b: any) => expect(a).toEqual(b),
 });
 
