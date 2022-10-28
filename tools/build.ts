@@ -39,7 +39,7 @@ class Program {
   }
 
   private static async preparePackageJson() {
-    const { name, version, author, description, keywords, license, main } =
+    const { name, version, author, description, keywords, license } =
       packageJson;
 
     const marketing = {
@@ -71,7 +71,10 @@ class Program {
       ...logistics,
     };
 
-    await outputFile(cwdPath("./dist/package.json"), JSON.stringify(output));
+    await outputFile(
+      cwdPath("./dist/package.json"),
+      JSON.stringify(output, null, 2)
+    );
   }
 }
 
