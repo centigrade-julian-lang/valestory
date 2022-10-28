@@ -8,7 +8,7 @@ export class TestoryConfig {
   }
 
   public static get(property: keyof TestoryConfiguration) {
-    if (this.current.has(property))
+    if (!this.current.has(property))
       throw new Error(`No config value for "${property}"`);
 
     return this.current.get(property);
