@@ -1,4 +1,4 @@
-import { TestoryConfiguration as ValestoryConfiguration } from "./types";
+import { ValestoryConfiguration } from "./types";
 
 export class ValestoryConfig {
   private static current = new Map();

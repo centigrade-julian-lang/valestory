@@ -7,7 +7,7 @@ export interface TestState {
 export type Extension<T> = ExtensionFn<T> & {
   __testoryType: "extension";
 };
-export interface TestoryConfiguration {
+export interface ValestoryConfiguration {
   isEqual: (a: any, b: any) => void;
 }
 

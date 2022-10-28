@@ -1,6 +1,6 @@
 export * from "./actions";
 export { when } from "./api";
-export { ValestoryConfig as TestoryConfig } from "./config";
+export * from "./config";
 export * from "./expectations";
 export { log } from "./helper";
 export * from "./mapper";
