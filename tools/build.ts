@@ -54,6 +54,7 @@ class Program {
     };
     const logistics = {
       files: ["**/*"],
+      types: "./types/index.d.ts",
       main: "./cjs/index.js",
       module: "./mjs/index.js",
       exports: {

@@ -9,8 +9,9 @@
   },
   "scripts": {
     "clean": "shx rm -rf dist",
-    "prebuild": "npm run clean",
+    "prebuild": "npm run clean && npm run build:types",
     "build": "ts-node tools/build.ts",
+    "build:types": "tsc src/index.ts --emitDeclarationOnly --declaration --declarationDir dist/types",
     "test": "jest"
   },
   "keywords": [],
