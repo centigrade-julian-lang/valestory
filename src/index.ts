@@ -5,3 +5,4 @@ export * from "./expectations";
 export { log } from "./helper";
 export * from "./mapper";
 export { check } from "./platform";
+export { createExtension } from "./utility";

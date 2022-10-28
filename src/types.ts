@@ -13,9 +13,7 @@ export interface TestoryConfiguration {
 
 export type TestApi = TargetedExtension & TestImport;
 export type TestImport = (state: TestState) => TestExtendingOrExpecter<unknown>;
-export type TargetedExtension = <T extends Ref<any>>(
-  target: T
-) => TargetActions<T>;
+export type TargetedExtension = <T>(target: Ref<T>) => TargetActions<T>;
 
 export interface TargetActions<T> {
   has: TargetAction<T>;

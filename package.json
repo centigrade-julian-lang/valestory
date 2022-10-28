@@ -13,7 +13,7 @@
     "build": "ts-node tools/build.ts",
     "build:types": "tsc src/index.ts --emitDeclarationOnly --declaration --declarationDir dist/types",
     "prepublish:lib": "npm run build && npm run test",
-    "publish:lib": "npm publish",
+    "publish:lib": "cd dist && npm publish",
     "publish:alpha": "npm run publish:lib -- --tag alpha",
     "test": "jest"
   },
