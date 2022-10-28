@@ -30,6 +30,7 @@ describe("ContactBook", () => {
     createExtension((subject: any) => {
       return new Promise((resolve) => {
         setTimeout(() => {
+          console.log("WAITED!");
           resolve(state({ contacts$: 42 })(subject));
         }, 1000);
       });
@@ -38,14 +39,6 @@ describe("ContactBook", () => {
   class the {
     static service = () => service;
   }
-
-  it("should invoke extensions (basic)", async () =>
-    when(the.service)
-      .has(state({ contacts$: 42 as any }))
-      .and(the.service)
-      .does(somethingAsync())
-      .expect(the.service)
-      .to(haveState({ contacts$: 42 as any })));
 
   it("should invoke extensions (basic)", async () =>
     when(the.service)

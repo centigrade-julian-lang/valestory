@@ -1,4 +1,4 @@
-import { Extension, ExtensionFn, TestoryMarker } from "../types";
+import { Extension, ExtensionFn } from "../types";
 
 export const createExtension = <T>(actionFn: ExtensionFn<T>): Extension<T> =>
-  Object.assign(actionFn, TestoryMarker);
+  Object.assign(actionFn, { __testoryType: "extension" } as const);

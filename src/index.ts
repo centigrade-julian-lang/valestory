@@ -29,10 +29,11 @@ const createActor =
         refOrFirstAction: R | Extension<TSubject>,
         ...restOfActions: Extension<TSubject>[]
       ) => {
-        const isExtensionFn = typeof refOrFirstAction === "symbol";
-        if (isExtensionFn) {
-          addTestStep(testState, [refOrFirstAction, ...restOfActions], subject);
-          return extendOrExpectApi;
+        if (isExtensionFn<TSubject>(refOrFirstAction)) {
+          return createActor(subject, testState)(
+            refOrFirstAction,
+            ...restOfActions
+          );
         } else {
           return createTestApi(testState)(refOrFirstAction);
         }
@@ -73,6 +74,14 @@ function addTestStep<TTarget>(
       }
     },
   ];
+}
+
+function isExtensionFn<T>(value: any): value is Extension<T> {
+  return (
+    value != null &&
+    "__testoryType" in value &&
+    value.__testoryType === "extension"
+  );
 }
 
 async function executeTest(testState: TestState): Promise<void> {

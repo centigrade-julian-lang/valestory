@@ -1,11 +1,12 @@
-export const TestoryMarker = Symbol("TestoryMarker");
 export type Ref<T> = () => T;
 export type ExtensionFn<T> = (target: T) => void | Promise<void>;
-export type TestStep = () => Promise<void> | void;
+export type TestStep = () => Promise<void>;
 export interface TestState {
   steps: TestStep[];
 }
-export type Extension<T> = ExtensionFn<T> & typeof TestoryMarker;
+export type Extension<T> = ExtensionFn<T> & {
+  __testoryType: "extension";
+};
 export interface TestoryConfiguration {
   isEqual: (a: any, b: any) => void;
 }
