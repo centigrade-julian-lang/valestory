@@ -9,15 +9,16 @@ import {
   TestState,
 } from "./types";
 
-const createTestApi =
-  (baseState: TestState): TestApi =>
-  <T>(subject: Ref<T>): TargetActions<T> => {
-    return {
-      has: createActor(subject, baseState),
-      does: createActor(subject, baseState),
-      is: createActor(subject, baseState),
-    };
+const createTestApi = <T>(
+  subjectOrTestState: Ref<T> | TestState,
+  baseState: TestState = { steps: [] }
+): TargetActions<T> => {
+  return {
+    has: createActor(subjectOrTestState, baseState),
+    does: createActor(subjectOrTestState, baseState),
+    is: createActor(subjectOrTestState, baseState),
   };
+};
 
 const createActor =
   <TSubject>(subject: Ref<TSubject>, testState: TestState) =>
@@ -29,13 +30,15 @@ const createActor =
         refOrFirstAction: R | Extension<TSubject>,
         ...restOfActions: Extension<TSubject>[]
       ) => {
-        if (isExtensionFn<TSubject>(refOrFirstAction)) {
+        if (isExtensionFn<TSubject>(refOrTestStateOrFirstAction)) {
+          // case: extension-fn import
           return createActor(subject, testState)(
-            refOrFirstAction,
+            refOrTestStateOrFirstAction,
             ...restOfActions
           );
         } else {
-          return createTestApi(testState)(refOrFirstAction);
+          // case: target-ref
+          return createTestApi(refOrTestStateOrFirstAction, testState);
         }
       }) as Extensions<TSubject>,
       expect: <TObject>(object: Ref<TObject>): TestEnding<TObject> => {
@@ -55,7 +58,7 @@ const createActor =
     return extendOrExpectApi;
   };
 
-export const when = createTestApi({ steps: [] });
+export const when: TestApi = createTestApi as TestApi;
 
 // ---------------------------------
 // module internal code
