@@ -1,6 +1,6 @@
 {
   "name": "valestory",
-  "version": "1.0.0",
+  "version": "0.1.0-alpha.1",
   "description": "",
   "homepage": "",
   "repository": {
@@ -12,6 +12,9 @@
     "prebuild": "npm run clean && npm run build:types",
     "build": "ts-node tools/build.ts",
     "build:types": "tsc src/index.ts --emitDeclarationOnly --declaration --declarationDir dist/types",
+    "prepublish:lib": "npm run build && npm run test",
+    "publish:lib": "npm publish",
+    "publish:alpha": "npm run publish:lib -- --tag alpha",
     "test": "jest"
   },
   "keywords": [],
