@@ -1,4 +1,4 @@
-import { TestoryConfig } from "./config";
+import { check } from "./config";
 import { Ref } from "./types";
 import { createExtension } from "./utility";
 
@@ -9,7 +9,7 @@ export const haveState = <TTarget extends {}, TState extends TTarget>(
     Object.entries(stateDef).forEach(([prop, value]) => {
       const actual = target[prop];
       const expected = value;
-      const isEqual = TestoryConfig.get("isEqual");
-      isEqual(actual, expected);
+
+      check(actual).equals(expected);
     });
   });

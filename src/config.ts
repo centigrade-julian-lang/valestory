@@ -8,6 +8,15 @@ export class TestoryConfig {
   }
 
   public static get(property: keyof TestoryConfiguration) {
+    if (this.current.has(property))
+      throw new Error(`No config value for "${property}"`);
+
     return this.current.get(property);
   }
 }
+
+export const check = (value: any) => ({
+  equals: (b: any) => {
+    return TestoryConfig.get("isEqual")(value, b);
+  },
+});
