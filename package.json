@@ -1,11 +1,11 @@
 {
   "name": "valestory",
-  "version": "0.1.0-alpha.7",
+  "version": "0.1.0-alpha.8",
   "description": "",
   "homepage": "",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Centigrade/ngtx.git"
+    "url": ""
   },
   "scripts": {
     "clean": "shx rm -rf dist",
