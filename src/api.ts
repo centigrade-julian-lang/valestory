@@ -1,12 +1,12 @@
 import {
+  AndStatement,
   Extension,
-  Extensions,
   Ref,
   TargetActions,
-  TestApi,
   TestEnding,
   TestExtendingOrExpecter,
   TestState,
+  WhenStatement,
 } from "./types";
 
 const createTestApi = <T>(
@@ -53,7 +53,7 @@ const createActor =
           // case: target-ref
           return createTestApi(refOrTestStateOrFirstAction, testState);
         }
-      }) as Extensions<TSubject>,
+      }) as AndStatement<TSubject>,
       expect: <TObject>(object: Ref<TObject>): TestEnding<TObject> => {
         return {
           will(...expectations: Extension<TObject>[]) {
@@ -71,7 +71,7 @@ const createActor =
     return extendOrExpectApi;
   };
 
-export const when: TestApi = createTestApi as TestApi;
+export const when: WhenStatement = createTestApi as WhenStatement;
 
 // ---------------------------------
 // module internal code
