@@ -7,4 +7,11 @@ export const log = (output?: Ref<any[]>) =>
     console.log(value, ...additionalOutput);
   });
 
-export const the = <T>(ref: T): T => ref;
+export function the<T, K extends keyof T>(value: T): () => T;
+export function the<T, K extends keyof T>(value: T, access: K): () => T[K];
+export function the<T, K extends keyof T>(
+  value: T,
+  access?: K
+): () => T | T[K] {
+  return () => (access ? value[access] : value);
+}
