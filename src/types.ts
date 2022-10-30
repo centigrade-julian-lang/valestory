@@ -5,7 +5,9 @@ export interface TestState {
   steps: TestStep[];
 }
 export type WhenStatement = TargetedExtension & TestImport;
-export type TestImport = (state: TestState) => TestExtendingOrExpecter<unknown>;
+export type TestImport = (
+  state: TestState
+) => TestExtendingOrExpecter<undefined>;
 export type TargetedExtension = <T>(target: Ref<T>) => TargetActions<T>;
 export interface TargetActions<T> {
   has: DoesStatement<T>;
