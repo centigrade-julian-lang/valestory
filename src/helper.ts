@@ -6,3 +6,5 @@ export const log = (output?: Ref<any[]>) =>
     const additionalOutput = output?.() ?? [];
     console.log(value, ...additionalOutput);
   });
+
+export const the = <T>(ref: T): T => ref;
