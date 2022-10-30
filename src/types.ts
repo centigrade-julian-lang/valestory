@@ -1,4 +1,5 @@
 //#region library internal types
+export type Props<T extends {}> = Record<keyof T, any>;
 export type ExtensionFn<T> = (target: T) => void | Promise<void>;
 export type TestStep = () => Promise<void>;
 export interface TestState {
@@ -24,7 +25,7 @@ export interface TestExtendingOrExpecter<T> extends TestState {
 }
 
 export type AndStatement<T> = WhenStatement & DoesStatement<T>;
-export type TestExpectation = <T extends Ref<any>>(target: T) => TestEnding<T>;
+export type TestExpectation = <T>(target: Ref<T>) => TestEnding<T>;
 export interface TestEnding<Target> {
   will: TestExpectator<Target, TestState>;
   to: TestExpectator<Target, Promise<void>>;

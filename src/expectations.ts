@@ -1,8 +1,9 @@
 import { check } from "./platform";
+import { Props } from "./types";
 import { createExtension } from "./utility";
 
 export const haveState = <TTarget extends {}, TState extends TTarget>(
-  stateDef: Partial<TState>
+  stateDef: Partial<Props<TState>>
 ) =>
   createExtension((target: TTarget) => {
     Object.entries(stateDef).forEach(([prop, value]) => {
