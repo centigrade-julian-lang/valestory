@@ -5,11 +5,11 @@ import { createExtension } from "./utility";
 export const haveState = <TTarget extends {}, TState extends TTarget>(
   stateDef: Partial<Props<TState>>
 ) =>
-  createExtension((target: TTarget) => {
+  createExtension((target: TTarget, { negateAssertion }) => {
     Object.entries(stateDef).forEach(([prop, value]) => {
       const actual = target[prop];
       const expected = value;
 
-      check(actual).equals(expected);
+      check(actual, negateAssertion).equals(expected);
     });
   });

@@ -25,16 +25,17 @@ class ContactBook {
 const service = new ContactBook();
 
 ValestoryConfig.override({
-  isEqual: (a: any, b: any) => expect(a).toEqual(b),
+  isEqual: (a: any, b: any, negate: boolean) =>
+    negate ? expect(a).not.toEqual(b) : expect(a).toEqual(b),
 });
 
 describe("ContactBook", () => {
   const somethingAsync = () =>
-    createExtension((subject: any) => {
+    createExtension((subject: any, meta: any) => {
       return new Promise((resolve) => {
         setTimeout(() => {
           console.log("WAITED!");
-          resolve(state({ contacts$: 42 })(subject));
+          resolve(state({ contacts$: 42 })(subject, meta));
         }, 1000);
       });
     });
@@ -48,6 +49,20 @@ describe("ContactBook", () => {
       return when(the.service).does(state(stateDef));
     }
   }
+
+  it("should negate (basic)", () => {
+    when(the.service)
+      .has(state({ numberOfContacts: 42 }))
+      .expect(the.service)
+      .not.to(haveState({ numberOfContacts: 24 }));
+  });
+
+  it("should negate (multiple times)", () => {
+    when(the.service)
+      .has(state({ numberOfContacts: 42 }))
+      .expect(the.service)
+      .not.not.not.to(haveState({ numberOfContacts: 24 }));
+  });
 
   it("should invoke extensions (basic)", () =>
     when(the.service)

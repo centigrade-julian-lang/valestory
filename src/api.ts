@@ -11,7 +11,7 @@ import {
 
 const createTestApi = <T>(
   subjectOrTestState: Ref<T> | TestState,
-  baseState: TestState = { steps: [] }
+  baseState: TestState = { steps: [], meta: { negateAssertion: false } }
 ): TargetActions<T> => {
   if (isTestState(subjectOrTestState)) {
     return createActor(undefined!, subjectOrTestState)() as any;
@@ -55,7 +55,7 @@ const createActor =
         }
       }) as AndStatement<TSubject>,
       expect: <TObject>(object: Ref<TObject>): TestEnding<TObject> => {
-        return {
+        const assertions = {
           will(...expectations: Extension<TObject>[]) {
             addTestStep(testState, expectations, object);
             return testState;
@@ -65,6 +65,21 @@ const createActor =
             await executeTest(testState);
           },
         };
+
+        const createNotApi: () => any = () => {
+          return new Proxy(assertions, {
+            get(_, propertyName) {
+              testState.meta.negateAssertion = !testState.meta.negateAssertion;
+
+              if (propertyName == "not") return createNotApi();
+              return assertions[propertyName];
+            },
+          });
+        };
+
+        return Object.assign(assertions, {
+          not: createNotApi(),
+        }) as TestEnding<TObject>;
       },
     };
 
@@ -86,7 +101,9 @@ function addTestStep<TTarget>(
     ...testState.steps,
     async () => {
       for (const effect of effects) {
-        await effect(target());
+        await effect(target(), {
+          negateAssertion: testState.meta.negateAssertion,
+        });
       }
     },
   ];
@@ -101,7 +118,7 @@ function isExtensionFn<T>(value: any): value is Extension<T> {
 }
 
 function isTestState(value: any): value is TestState {
-  return "steps" in value && Array.isArray(value.steps);
+  return value != null && "steps" in value && Array.isArray(value.steps);
 }
 
 async function executeTest(testState: TestState): Promise<void> {

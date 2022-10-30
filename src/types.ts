@@ -1,10 +1,15 @@
 //#region library internal types
 export type Props<T extends {}> = Record<keyof T, any>;
-export type ExtensionFn<T> = (target: T) => void | Promise<void>;
+export type ExtensionFn<T> = (
+  target: T,
+  meta: TestMeta
+) => void | Promise<void>;
 export type TestStep = () => Promise<void>;
 export interface TestState {
   steps: TestStep[];
+  meta: TestMeta;
 }
+
 export type WhenStatement = TargetedExtension & TestImport;
 export type TestImport = (
   state: TestState
@@ -27,6 +32,7 @@ export interface TestExtendingOrExpecter<T> extends TestState {
 export type AndStatement<T> = WhenStatement & DoesStatement<T>;
 export type TestExpectation = <T>(target: Ref<T>) => TestEnding<T>;
 export interface TestEnding<Target> {
+  not: TestEnding<Target>;
   will: TestExpectator<Target, TestState>;
   to: TestExpectator<Target, Promise<void>>;
 }
@@ -42,7 +48,9 @@ export type Extension<T> = ExtensionFn<T> & {
   __testoryType: "extension";
 };
 export interface ValestoryConfiguration {
-  isEqual: (a: any, b: any) => void;
+  isEqual: (a: any, b: any, negated: boolean) => void;
 }
-
+export interface TestMeta {
+  negateAssertion: boolean;
+}
 //#endregion
