@@ -53,7 +53,7 @@ describe("ContactBook", () => {
       .not.to(haveState({ numberOfContacts: 24 }));
   });
 
-  it("should invoke extensions (basic)", () =>
+  it("should invoke extensions (basic & async)", () =>
     when(the(service))
       .has(state({ numberOfContacts: 42 }))
       .and(somethingAsync())
@@ -84,7 +84,7 @@ describe("ContactBook", () => {
       .to(haveState({ numberOfContacts: 42 }));
   });
 
-  it("should allow for intermediate checks (via will)", async () => {
+  it("should allow for intermediate checks (via will)", () => {
     const was = { executed: false };
     const check = createExtension(() => {
       was.executed = true;
@@ -95,20 +95,20 @@ describe("ContactBook", () => {
       .expect(the(service))
       .will(check);
 
-    await when(with42Contacts)
+    when(with42Contacts)
       .and(the(service))
       .has(state({ numberOfContacts: 12 }))
       .expect(() => was)
       .to(haveState({ executed: true }));
   });
 
-  it("should allow for intermediate checks (via and)", async () => {
+  it("should allow for intermediate checks (via and)", () => {
     const was = { executed: false };
     const check = createExtension(() => {
       was.executed = true;
     });
 
-    await when(the(service))
+    when(the(service))
       .has(state({ numberOfContacts: 12 }))
       .and(check)
       .expect(() => was)
