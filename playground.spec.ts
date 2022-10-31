@@ -53,7 +53,7 @@ describe("ContactBook", () => {
       .not.to(haveState({ numberOfContacts: 24 }));
   });
 
-  fit("should invoke extensions (basic)", () =>
+  it("should invoke extensions (basic)", () =>
     when(the(service))
       .has(state({ numberOfContacts: 42 }))
       .and(somethingAsync())
