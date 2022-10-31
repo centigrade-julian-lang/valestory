@@ -104,8 +104,8 @@ function addTestStep<TTarget>(
 function isExtensionFn<T>(value: any): value is Extension<T> {
   return (
     value != null &&
-    "__testoryType" in value &&
-    value.__testoryType === "extension"
+    "__valestoryType" in value &&
+    value.__valestoryType === "extension"
   );
 }
 

@@ -44,7 +44,7 @@ export type TestExpectator<Target, Result> = (
 //#region public types
 export type Ref<T> = () => T;
 export type Extension<T> = ExtensionFn<T> & {
-  __testoryType: "extension";
+  __valestoryType: "extension";
 };
 export interface ValestoryConfiguration {
   isEqual: (a: any, b: any, negated: boolean) => void;
