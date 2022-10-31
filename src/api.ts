@@ -117,6 +117,9 @@ async function executeTest(testState: TestState): Promise<void> {
   for (const step of testState.steps) {
     await step();
   }
+
+  // clear memory
+  testState.steps = [];
 }
 
 function updatePartially<T extends {}>(original: T, update: Partial<T>) {
