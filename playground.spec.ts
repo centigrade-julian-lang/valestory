@@ -30,13 +30,13 @@ ValestoryConfig.override({
 });
 
 describe("ContactBook", () => {
-  const somethingAsync = () =>
+  const somethingAsync = (delay = 1000) =>
     createExtension((subject: any, meta: any) => {
       return new Promise((resolve) => {
         setTimeout(() => {
           console.log("WAITED!");
           resolve(state({ contacts$: 42 })(subject, meta));
-        }, 1000);
+        }, delay);
       });
     });
 
@@ -53,7 +53,7 @@ describe("ContactBook", () => {
       .not.to(haveState({ numberOfContacts: 24 }));
   });
 
-  it("should invoke extensions (basic)", () =>
+  fit("should invoke extensions (basic)", () =>
     when(the(service))
       .has(state({ numberOfContacts: 42 }))
       .and(somethingAsync())
@@ -64,8 +64,8 @@ describe("ContactBook", () => {
     () => when(the(service)).has(state({ numberOfContacts: 42 })),
     () => when(the(service)).is(state({ numberOfContacts: 42 })),
     () => when(the(service)).does(state({ numberOfContacts: 42 })),
-  ])("should allow for chaining (action)", async (with42Contacts) => {
-    await when(with42Contacts())
+  ])("should allow for chaining (action)", (with42Contacts) => {
+    when(with42Contacts())
       .expect(the(service))
       .to(haveState({ numberOfContacts: 42 }));
   });
