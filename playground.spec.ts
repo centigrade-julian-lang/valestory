@@ -53,13 +53,6 @@ describe("ContactBook", () => {
       .not.to(haveState({ numberOfContacts: 24 }));
   });
 
-  it("should negate (multiple times)", () => {
-    when(the(service))
-      .has(state({ numberOfContacts: 42 }))
-      .expect(the(service))
-      .not.not.not.to(haveState({ numberOfContacts: 24 }));
-  });
-
   it("should invoke extensions (basic)", () =>
     when(the(service))
       .has(state({ numberOfContacts: 42 }))

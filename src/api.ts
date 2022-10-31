@@ -11,7 +11,7 @@ import {
 
 const createTestApi = <T>(
   subjectOrTestState: Ref<T> | TestState,
-  baseState: TestState = { steps: [], meta: { negateAssertion: false } }
+  baseState: TestState = { steps: [] }
 ): TargetActions<T> => {
   if (isTestState(subjectOrTestState)) {
     return createActor(undefined!, subjectOrTestState)() as any;
@@ -55,31 +55,22 @@ const createActor =
         }
       }) as AndStatement<TSubject>,
       expect: <TObject>(object: Ref<TObject>): TestEnding<TObject> => {
-        const assertions = {
-          will(...expectations: Extension<TObject>[]) {
-            addTestStep(testState, expectations, object);
-            return testState;
-          },
-          async to(...expectations: Extension<TObject>[]) {
-            addTestStep(testState, expectations, object);
-            await executeTest(testState);
-          },
-        };
-
-        const createNotApi: () => any = () => {
-          return new Proxy(assertions, {
-            get(_, propertyName) {
-              testState.meta.negateAssertion = !testState.meta.negateAssertion;
-
-              if (propertyName == "not") return createNotApi();
-              return assertions[propertyName];
+        const assertions = (negate: boolean) => {
+          return {
+            will(...expectations: Extension<TObject>[]) {
+              addTestStep(testState, expectations, object, negate);
+              return testState;
             },
-          });
+            async to(...expectations: Extension<TObject>[]) {
+              addTestStep(testState, expectations, object, negate);
+              await executeTest(testState);
+            },
+          };
         };
 
-        return Object.assign(assertions, {
-          not: createNotApi(),
-        }) as TestEnding<TObject>;
+        return Object.assign(assertions(false), {
+          not: assertions(true),
+        });
       },
     };
 
@@ -95,14 +86,15 @@ export const when: WhenStatement = createTestApi as WhenStatement;
 function addTestStep<TTarget>(
   testState: TestState,
   effects: Extension<TTarget>[],
-  target: Ref<TTarget>
+  target: Ref<TTarget>,
+  negateAssertion: boolean = false
 ): void {
   testState.steps = [
     ...testState.steps,
     async () => {
       for (const effect of effects) {
         await effect(target(), {
-          negateAssertion: testState.meta.negateAssertion,
+          negateAssertion: negateAssertion,
         });
       }
     },

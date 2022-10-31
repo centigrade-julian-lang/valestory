@@ -7,7 +7,6 @@ export type ExtensionFn<T> = (
 export type TestStep = () => Promise<void>;
 export interface TestState {
   steps: TestStep[];
-  meta: TestMeta;
 }
 
 export type WhenStatement = TargetedExtension & TestImport;
@@ -32,7 +31,7 @@ export interface TestExtendingOrExpecter<T> extends TestState {
 export type AndStatement<T> = WhenStatement & DoesStatement<T>;
 export type TestExpectation = <T>(target: Ref<T>) => TestEnding<T>;
 export interface TestEnding<Target> {
-  not: TestEnding<Target>;
+  not: Omit<TestEnding<Target>, "not">;
   will: TestExpectator<Target, TestState>;
   to: TestExpectator<Target, Promise<void>>;
 }
