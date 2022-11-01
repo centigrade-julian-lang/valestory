@@ -57,7 +57,7 @@ describe("ContactBook", () => {
     }
   }
 
-  it("should execute extension functions", () => {
+  it("should execute api-extension functions", () => {
     (when(null!) as any)
       .markExtensionExecutedTrue()
       .expect(() => wasExtensionExecuted)
