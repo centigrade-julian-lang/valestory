@@ -1,5 +1,6 @@
 //#region library internal types
 export type Props<T extends {}> = Record<keyof T, any>;
+export type ApiExtensionFn<C> = (apiToContinueWith: C) => Function;
 export type ExtensionFn<T> = (
   target: T,
   meta: TestMeta

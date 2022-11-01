@@ -9,7 +9,7 @@ export class ValestoryConfig {
 
   public static get(property: keyof ValestoryConfiguration) {
     if (!this.current.has(property))
-      throw new Error(`No config value for "${property}"`);
+      throw new Error(`[valestory] No config value for "${property}"`);
 
     return this.current.get(property);
   }

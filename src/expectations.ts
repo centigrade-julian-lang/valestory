@@ -13,3 +13,8 @@ export const haveState = <TTarget extends {}, TState extends TTarget>(
       check(actual, negateAssertion).equals(expected);
     });
   });
+
+export const equal = <T, I extends T = T>(expected: I) =>
+  createExtension((actual: T, { negateAssertion }) => {
+    check(actual, negateAssertion).equals(expected);
+  });

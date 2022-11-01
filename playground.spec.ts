@@ -1,8 +1,9 @@
 import { BehaviorSubject, tap } from "rxjs";
 import { the, when } from "./src";
 import { state } from "./src/actions";
-import { ValestoryConfig } from "./src/config";
-import { haveState } from "./src/expectations";
+import { equal, haveState } from "./src/expectations";
+import { Valestory } from "./src/platform";
+import { TestExtendingOrExpecter } from "./src/types";
 import { createExtension } from "./src/utility";
 
 interface Address {
@@ -24,10 +25,20 @@ class ContactBook {
 
 const service = new ContactBook();
 
-ValestoryConfig.override({
+Valestory.config.override({
   isEqual: (a: any, b: any, negate: boolean) =>
     negate ? expect(a).not.toEqual(b) : expect(a).toEqual(b),
 });
+
+let wasExtensionExecuted = false;
+const markExtensionExecutedTrue = "markExtensionExecutedTrue" as const;
+Valestory.extensions.register(
+  markExtensionExecutedTrue,
+  (context: TestExtendingOrExpecter<any>) => () => {
+    wasExtensionExecuted = true;
+    return context;
+  }
+);
 
 describe("ContactBook", () => {
   const somethingAsync = (delay = 1000) =>
@@ -45,6 +56,13 @@ describe("ContactBook", () => {
       return when(the(service)).does(state(stateDef));
     }
   }
+
+  it("should execute extension functions", () => {
+    (when(null!) as any)
+      .markExtensionExecutedTrue()
+      .expect(() => wasExtensionExecuted)
+      .to(equal(true));
+  });
 
   it("should negate (basic)", () => {
     when(the(service))

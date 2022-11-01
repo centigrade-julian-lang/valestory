@@ -1,3 +1,4 @@
+import { Valestory } from "./platform";
 import {
   AndStatement,
   Extension,
@@ -17,11 +18,14 @@ const createTestApi = <T>(
     return createActor(undefined!, subjectOrTestState)() as any;
   }
 
-  return {
-    has: createActor(subjectOrTestState, baseState),
-    does: createActor(subjectOrTestState, baseState),
-    is: createActor(subjectOrTestState, baseState),
-  };
+  return withExtensions(
+    {
+      has: createActor(subjectOrTestState, baseState),
+      does: createActor(subjectOrTestState, baseState),
+      is: createActor(subjectOrTestState, baseState),
+    },
+    createExpectOrAndApi(baseState, subjectOrTestState)
+  );
 };
 
 const createActor =
@@ -29,50 +33,8 @@ const createActor =
   (...actions: Extension<TSubject>[]): TestExtendingOrExpecter<TSubject> => {
     addTestStep(testState, actions, subject);
 
-    const extendOrExpectApi: TestExtendingOrExpecter<TSubject> = {
-      ...testState,
-      and: (<R extends Ref<any>>(
-        refOrTestStateOrFirstAction: R | TestState | Extension<TSubject>,
-        ...restOfActions: Extension<TSubject>[]
-      ) => {
-        if (isExtensionFn<TSubject>(refOrTestStateOrFirstAction)) {
-          // case: extension-fn import
-          return createActor(subject, testState)(
-            refOrTestStateOrFirstAction,
-            ...restOfActions
-          );
-        } else if (isTestState(refOrTestStateOrFirstAction)) {
-          // case: test-state import
-          return createActor(
-            subject,
-            updatePartially(testState, {
-              steps: testState.steps.concat(refOrTestStateOrFirstAction.steps),
-            })
-          )();
-        } else {
-          // case: target-ref
-          return createTestApi(refOrTestStateOrFirstAction, testState);
-        }
-      }) as AndStatement<TSubject>,
-      expect: <TObject>(object: Ref<TObject>): TestEnding<TObject> => {
-        const assertions = (negate: boolean) => {
-          return {
-            will(...expectations: Extension<TObject>[]) {
-              addTestStep(testState, expectations, object, negate);
-              return testState;
-            },
-            async to(...expectations: Extension<TObject>[]) {
-              addTestStep(testState, expectations, object, negate);
-              await executeTest(testState);
-            },
-          };
-        };
-
-        return Object.assign(assertions(false), {
-          not: assertions(true),
-        });
-      },
-    };
+    const extendOrExpectApi: TestExtendingOrExpecter<TSubject> =
+      createExpectOrAndApi<TSubject>(testState, subject);
 
     return extendOrExpectApi;
   };
@@ -82,6 +44,75 @@ export const when: WhenStatement = createTestApi as WhenStatement;
 // ---------------------------------
 // module internal code
 // ---------------------------------
+
+function withExtensions<T, C>(
+  apiToExtend: TargetActions<T>,
+  apiToContinueWith: C
+): TargetActions<T> {
+  let isExtension = false;
+
+  return new Proxy(apiToExtend, {
+    get(target, name: string) {
+      if (Valestory.extensions.has(name)) {
+        isExtension = true;
+        // expected to be (apiToContinueWith) => (...args: any[]) => any
+        return Valestory.extensions.getExtension(name)(apiToContinueWith);
+      }
+
+      return target[name];
+    },
+  });
+}
+
+function createExpectOrAndApi<TSubject>(
+  testState: TestState,
+  subject: Ref<TSubject>
+): TestExtendingOrExpecter<TSubject> {
+  return {
+    ...testState,
+    and: (<R extends Ref<any>>(
+      refOrTestStateOrFirstAction: R | TestState | Extension<TSubject>,
+      ...restOfActions: Extension<TSubject>[]
+    ) => {
+      if (isExtensionFn<TSubject>(refOrTestStateOrFirstAction)) {
+        // case: extension-fn import
+        return createActor(subject, testState)(
+          refOrTestStateOrFirstAction,
+          ...restOfActions
+        );
+      } else if (isTestState(refOrTestStateOrFirstAction)) {
+        // case: test-state import
+        return createActor(
+          subject,
+          updatePartially(testState, {
+            steps: testState.steps.concat(refOrTestStateOrFirstAction.steps),
+          })
+        )();
+      } else {
+        // case: target-ref
+        return createTestApi(refOrTestStateOrFirstAction, testState);
+      }
+    }) as AndStatement<TSubject>,
+    expect: <TObject>(object: Ref<TObject>): TestEnding<TObject> => {
+      const assertions = (negate: boolean) => {
+        return {
+          will(...expectations: Extension<TObject>[]) {
+            addTestStep(testState, expectations, object, negate);
+            return testState;
+          },
+          async to(...expectations: Extension<TObject>[]) {
+            addTestStep(testState, expectations, object, negate);
+            await executeTest(testState);
+          },
+        };
+      };
+
+      return Object.assign(assertions(false), {
+        not: assertions(true),
+      });
+    },
+  };
+}
 
 function addTestStep<TTarget>(
   testState: TestState,
