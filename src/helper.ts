@@ -1,5 +1,8 @@
+import { when } from "./api";
 import { Ref } from "./types";
 import { createExtension } from "./utility";
+
+export const initially = when(() => undefined).does();
 
 export const log = (output?: Ref<any[]>) =>
   createExtension((value, { addTestStep }) => {
