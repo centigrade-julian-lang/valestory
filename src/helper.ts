@@ -2,9 +2,11 @@ import { Ref } from "./types";
 import { createExtension } from "./utility";
 
 export const log = (output?: Ref<any[]>) =>
-  createExtension((value) => {
-    const additionalOutput = output?.() ?? [];
-    output ? console.log(...additionalOutput) : console.log(value);
+  createExtension((value, { addTestStep }) => {
+    addTestStep(() => {
+      const additionalOutput = output?.() ?? [];
+      output ? console.log(...additionalOutput) : console.log(value);
+    });
   });
 
 export function the<T, K extends keyof T>(value: T): () => T;
