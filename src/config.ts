@@ -7,7 +7,9 @@ export class ValestoryConfig {
     this.current = new Map(Object.entries(cfg));
   }
 
-  public static get(property: keyof ValestoryConfiguration) {
+  public static get<T extends keyof ValestoryConfiguration>(
+    property: T
+  ): ValestoryConfiguration[T] {
     if (!this.current.has(property))
       throw new Error(`[valestory] No config value for "${property}"`);
 

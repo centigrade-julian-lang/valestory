@@ -1,7 +1,7 @@
 import { BehaviorSubject, tap } from "rxjs";
 import { the, when } from "./src";
-import { state } from "./src/actions";
-import { equal, haveState } from "./src/expectations";
+import { call, state } from "./src/actions";
+import { equal, haveCalled, haveState } from "./src/expectations";
 import { Valestory } from "./src/platform";
 import { TestExtendingOrExpecter } from "./src/types";
 import { createExtension } from "./src/utility";
@@ -26,6 +26,18 @@ class ContactBook {
 const service = new ContactBook();
 
 Valestory.config.override({
+  spyFactory: (value) => jest.fn().mockReturnValue(value),
+  hasBeenCalled: (spy: any, negate, times?: number) => {
+    if (negate) {
+      times != null
+        ? expect(spy).not.toHaveBeenCalledTimes(times)
+        : expect(spy).not.toHaveBeenCalled();
+    } else {
+      times != null
+        ? expect(spy).toHaveBeenCalledTimes(times)
+        : expect(spy).toHaveBeenCalled();
+    }
+  },
   isEqual: (a: any, b: any, negate: boolean) =>
     negate ? expect(a).not.toEqual(b) : expect(a).toEqual(b),
 });
@@ -42,13 +54,18 @@ Valestory.extensions.register(
 
 describe("ContactBook", () => {
   const somethingAsync = (delay = 1000) =>
-    createExtension((subject: any, meta: any) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          console.log("WAITED!");
-          resolve(state({ contacts$: 42 })(subject, meta));
-        }, delay);
-      });
+    createExtension((subject: any, meta) => {
+      meta.addTestStep(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => {
+              console.log("waited!");
+
+              state({ contacts$: 42 })(subject, meta);
+              resolve();
+            }, delay);
+          })
+      );
     });
 
   class once {
@@ -62,6 +79,58 @@ describe("ContactBook", () => {
       .markExtensionExecutedTrue()
       .expect(() => wasExtensionExecuted)
       .to(equal(true));
+  });
+
+  it("should spy on targets (times 1)", () => {
+    const host = {
+      doSomething: () => {},
+    };
+
+    return when(() => host)
+      .calls("doSomething")
+      .expect(() => host)
+      .to(haveCalled("doSomething"));
+  });
+
+  it("should spy on targets (times 2)", () => {
+    const host = {
+      doSomething: () => {},
+    };
+
+    return when(() => host)
+      .calls("doSomething")
+      .and(call("doSomething"))
+      .expect(() => host)
+      .to(haveCalled("doSomething", { times: 2 }));
+  });
+
+  it("should spy on targets (times 2)", () => {
+    const host = {
+      doSomething: () => {},
+    };
+
+    return when(() => host)
+      .calls("doSomething")
+      .and(call("doSomething"))
+      .expect(() => host)
+      .to(haveCalled("doSomething", { times: null }));
+  });
+
+  it("should spy on targets (returnValue)", () => {
+    const service = { spyOnMe: () => false, called: false };
+    const host = {
+      doSomething: () => {
+        service.called = service.spyOnMe();
+      },
+    };
+
+    return when(() => host)
+      .calls("doSomething")
+      .expect(() => service)
+      .to(
+        haveCalled("spyOnMe", { returnValue: true }),
+        state({ called: true })
+      );
   });
 
   it("should negate (basic)", () => {

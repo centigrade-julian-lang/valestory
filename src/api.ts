@@ -1,8 +1,12 @@
+import { call } from "./actions";
+import { ValestoryConfig } from "./config";
 import { Valestory } from "./platform";
 import {
   AndStatement,
+  CallStatement,
   Extension,
   Ref,
+  SpyRequest,
   TargetActions,
   TestEnding,
   TestExtendingOrExpecter,
@@ -12,7 +16,7 @@ import {
 
 const createTestApi = <T>(
   subjectOrTestState: Ref<T> | TestState,
-  baseState: TestState = { steps: [] }
+  baseState: TestState = { steps: [], spyRequests: [] }
 ): TargetActions<T> => {
   if (isTestState(subjectOrTestState)) {
     return createActor(undefined!, subjectOrTestState)() as any;
@@ -23,6 +27,7 @@ const createTestApi = <T>(
       has: createActor(subjectOrTestState, baseState),
       does: createActor(subjectOrTestState, baseState),
       is: createActor(subjectOrTestState, baseState),
+      calls: createCaller<T>(subjectOrTestState, baseState),
     },
     createExpectOrAndApi(baseState, subjectOrTestState)
   );
@@ -44,17 +49,25 @@ export const when: WhenStatement = createTestApi as WhenStatement;
 // ---------------------------------
 // module internal code
 // ---------------------------------
+function createCaller<T>(
+  subjectOrTestState: Ref<T>,
+  baseState: TestState
+): CallStatement<T> {
+  return (mapFnOrPropertyName, ...args) => {
+    return createActor(
+      subjectOrTestState,
+      baseState
+    )(call(mapFnOrPropertyName as string, ...args) as any);
+  };
+}
 
 function withExtensions<T, C>(
   apiToExtend: TargetActions<T>,
   apiToContinueWith: C
 ): TargetActions<T> {
-  let isExtension = false;
-
   return new Proxy(apiToExtend, {
     get(target, name: string) {
       if (Valestory.extensions.has(name)) {
-        isExtension = true;
         // expected to be (apiToContinueWith) => (...args: any[]) => any
         return Valestory.extensions.getExtension(name)(apiToContinueWith);
       }
@@ -116,20 +129,25 @@ function createExpectOrAndApi<TSubject>(
 
 function addTestStep<TTarget>(
   testState: TestState,
-  effects: Extension<TTarget>[],
+  actions: Extension<TTarget>[],
   target: Ref<TTarget>,
   negateAssertion: boolean = false
 ): void {
-  testState.steps = [
-    ...testState.steps,
-    async () => {
-      for (const effect of effects) {
-        await effect(target(), {
-          negateAssertion: negateAssertion,
-        });
-      }
-    },
-  ];
+  for (const action of actions) {
+    action(target(), {
+      negateAssertion: negateAssertion,
+      addTestStep: (...steps) => {
+        testState.steps = [...testState.steps, ...steps];
+      },
+      setSpy: (host, target, returnValue) => {
+        const spyFactory = ValestoryConfig.get("spyFactory");
+        const spy = spyFactory(returnValue);
+        testState.spyRequests.push({ host, target, spyInstance: spy });
+
+        return spy;
+      },
+    });
+  }
 }
 
 function isExtensionFn<T>(value: any): value is Extension<T> {
@@ -146,11 +164,39 @@ function isTestState(value: any): value is TestState {
 
 async function executeTest(testState: TestState): Promise<void> {
   for (const step of testState.steps) {
+    testState.spyRequests = trySetSpies(testState.spyRequests);
     await step();
   }
 
+  if (testState.spyRequests.length > 0) {
+    const count = testState.spyRequests.length;
+    const names = testState.spyRequests.map((s) => s.target);
+
+    throw new Error(
+      `[valestory] Could not set all spies. ${count} spies could not be set: ${names.join(
+        ", "
+      )}.`
+    );
+  }
+
   // clear memory
+  testState.spyRequests = [];
   testState.steps = [];
+}
+
+function trySetSpies(spyRequests: SpyRequest[]): SpyRequest[] {
+  return spyRequests.filter((spy) => {
+    const host = spy.host();
+
+    // do not remove from array and retry next tick:
+    if (host == null) return true;
+    if (host[spy.target] == null) return true;
+
+    // successfully added spy
+    host[spy.target] = spy.spyInstance;
+
+    return false;
+  });
 }
 
 function updatePartially<T extends {}>(original: T, update: Partial<T>) {
