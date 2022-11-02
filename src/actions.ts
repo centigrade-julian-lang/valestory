@@ -20,7 +20,7 @@ export function call<T extends {}>(
       const mapped =
         typeof map === "string" ? resolved[map] : (map as Function)(resolved);
       const fn = mapped as Function;
-      fn.call(target, ...args);
+      fn.call(resolved, ...args);
     });
   });
 }

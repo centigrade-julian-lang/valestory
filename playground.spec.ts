@@ -129,8 +129,23 @@ describe("ContactBook", () => {
       .expect(() => service)
       .to(
         haveCalled("spyOnMe", { returnValue: true }),
-        state({ called: true })
+        haveState({ called: true })
       );
+  });
+
+  it("should spy on targets (bind to target)", () => {
+    class Service {
+      called = false;
+      callMe() {
+        this.called = true;
+      }
+    }
+    const service = new Service();
+
+    return when(the(service))
+      .calls("callMe")
+      .expect(the(service))
+      .to(haveState({ called: true }));
   });
 
   it("should negate (basic)", () => {
