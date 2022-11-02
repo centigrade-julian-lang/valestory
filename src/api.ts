@@ -134,7 +134,7 @@ function addTestStep<TTarget>(
   negateAssertion: boolean = false
 ): void {
   for (const action of actions) {
-    action(target(), {
+    action(target, {
       negateAssertion: negateAssertion,
       addTestStep: (...steps) => {
         testState.steps = [...testState.steps, ...steps];

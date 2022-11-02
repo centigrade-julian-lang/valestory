@@ -1,7 +1,10 @@
 //#region library internal types
 export type Props<T extends {}> = Record<keyof T, any>;
 export type ApiExtensionFn<C> = (apiToContinueWith: C) => Function;
-export type ExtensionFn<T> = (target: T, meta: TestEnv) => void | Promise<void>;
+export type ExtensionFn<T> = (
+  target: Ref<T>,
+  meta: TestEnv
+) => void | Promise<void>;
 export type TestStep = () => Promise<void> | void;
 export interface TestState {
   steps: TestStep[];
