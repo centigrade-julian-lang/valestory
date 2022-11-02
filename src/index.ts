@@ -1,7 +1,7 @@
 export * from "./actions";
 export { when } from "./api";
 export * from "./expectations";
-export { log, the } from "./helper";
+export { initially, log, the } from "./helper";
 export * from "./mapper";
 export { check, Valestory } from "./platform";
 export {
