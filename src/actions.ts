@@ -1,7 +1,9 @@
 import { Props, Ref } from "./types";
 import { createExtension } from "./utility";
 
-export const state = <TTarget extends {}>(stateDef: Partial<Props<TTarget>>) =>
+export const state = <TTarget extends {}, TState extends TTarget = TTarget>(
+  stateDef: Partial<Props<TState>>
+) =>
   createExtension((target: Ref<TTarget>, { addTestStep }) => {
     addTestStep(() => {
       Object.entries(stateDef).forEach(([prop, value]) => {
