@@ -146,6 +146,9 @@ function addTestStep<TTarget>(
 
         return spy;
       },
+      wrapTestExecution: (wrapFn) => {
+        testState.testExecutionWrapperFn = wrapFn;
+      },
     });
   }
 }
@@ -163,10 +166,16 @@ function isTestState(value: any): value is TestState {
 }
 
 async function executeTest(testState: TestState): Promise<void> {
-  for (const step of testState.steps) {
-    testState.spyRequests = trySetSpies(testState.spyRequests);
-    await step();
-  }
+  // hint: allows the user to wrap the whole test body; e.g. for: expect(() => testBody()).toThrow()
+  const testWrapFn =
+    testState.testExecutionWrapperFn ?? ((execTest) => execTest());
+
+  await testWrapFn(async () => {
+    for (const step of testState.steps) {
+      testState.spyRequests = trySetSpies(testState.spyRequests);
+      await step();
+    }
+  });
 
   if (testState.spyRequests.length > 0) {
     const count = testState.spyRequests.length;

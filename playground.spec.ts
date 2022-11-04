@@ -1,7 +1,7 @@
 import { BehaviorSubject, tap } from "rxjs";
 import { the, when } from "./src";
 import { call, state } from "./src/actions";
-import { equal, haveCalled, haveState } from "./src/expectations";
+import { equal, haveCalled, haveState, haveThrown } from "./src/expectations";
 import { Valestory } from "./src/platform";
 import { TestExtendingOrExpecter } from "./src/types";
 import { createExtension } from "./src/utility";
@@ -27,6 +27,17 @@ const service = new ContactBook();
 
 Valestory.config.override({
   spyFactory: (value) => jest.fn().mockReturnValue(value),
+  didThrow: async (testBodyFn, negate, error) => {
+    if (negate) {
+      if (error != null) {
+        await expect(testBodyFn).rejects.not.toThrow(error);
+      } else {
+        await expect(testBodyFn()).resolves.not.toThrowError();
+      }
+    } else {
+      await expect(testBodyFn).rejects.toThrow(error);
+    }
+  },
   hasBeenCalled: (spy: any, negate, times?: number) => {
     if (negate) {
       times != null
@@ -68,11 +79,25 @@ describe("ContactBook", () => {
       );
     });
 
+  const throwError = createExtension((_, { addTestStep }) => {
+    addTestStep(() => {
+      throw new Error("error!!");
+    });
+  });
+
   class once {
     static serviceHasState(stateDef: any) {
       return when(the(service)).does(state(stateDef));
     }
   }
+
+  it("should allow to wrap the test body (e.g. to check if it threw)", () => {
+    return when(null!).does(throwError).expect().to(haveThrown());
+  });
+
+  it("should allow to wrap the test body (e.g. to check if it threw) (negated)", () => {
+    return when(null!).does().expect().not.to(haveThrown());
+  });
 
   it("should execute api-extension functions", () => {
     (when(null!) as any)
