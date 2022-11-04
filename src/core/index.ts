@@ -1,4 +1,4 @@
-import { call } from "./actions";
+import { call } from "../extensions/actions";
 import { ValestoryConfig } from "./config";
 import { Valestory } from "./platform";
 import {

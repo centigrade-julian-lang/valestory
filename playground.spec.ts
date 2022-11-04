@@ -1,8 +1,8 @@
 import { BehaviorSubject, tap } from "rxjs";
 import { the, when } from "./src";
 import { call, state } from "./src/actions";
+import { Valestory } from "./src/core/platform";
 import { equal, haveCalled, haveState } from "./src/expectations";
-import { Valestory } from "./src/platform";
 import { TestExtendingOrExpecter } from "./src/types";
 import { createExtension } from "./src/utility";
 

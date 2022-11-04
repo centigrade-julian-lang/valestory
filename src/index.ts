@@ -1,14 +1,2 @@
-export * from "./actions";
-export { when } from "./api";
-export * from "./expectations";
-export { initially, log, the } from "./helper";
-export * from "./mapper";
-export { check, Valestory } from "./platform";
-export {
-  ApiExtensionFn,
-  Extension,
-  Ref,
-  TestState,
-  ValestoryConfiguration,
-} from "./types";
-export { createExtension } from "./utility";
+export * from "./core/public-api";
+export * from "./extensions/public-api";

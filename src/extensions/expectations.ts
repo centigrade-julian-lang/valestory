@@ -1,6 +1,6 @@
+import { Props, Ref } from "../core/types";
 import { ValestoryConfig } from "./config";
 import { check } from "./platform";
-import { Props, Ref } from "./types";
 import { createExtension } from "./utility";
 
 export const haveState = <TTarget extends {}, TState extends TTarget>(

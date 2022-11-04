@@ -1,6 +1,6 @@
 import { ApiExtensionFn } from "./types";
 
-export class ValestoryExtensions {
+export class ValestoryApiExtensions {
   private static extensions = new Map<string, ApiExtensionFn<any>>();
 
   public static has(name: string): boolean {
