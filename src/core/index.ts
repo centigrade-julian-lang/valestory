@@ -170,12 +170,14 @@ async function executeTest(testState: TestState): Promise<void> {
   const testWrapFn =
     testState.testExecutionWrapperFn ?? ((execTest) => execTest());
 
-  await testWrapFn(async () => {
+  const executeTestSteps = async () => {
     for (const step of testState.steps) {
       testState.spyRequests = trySetSpies(testState.spyRequests);
       await step();
     }
-  });
+  };
+
+  await testWrapFn(executeTestSteps);
 
   if (testState.spyRequests.length > 0) {
     const count = testState.spyRequests.length;
