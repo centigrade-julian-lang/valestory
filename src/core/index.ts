@@ -17,9 +17,9 @@ import {
 const createTestApi = <T>(
   subjectOrTestState: Ref<T> | TestState,
   baseState: TestState = { steps: [], spyRequests: [] }
-): TargetActions<T> => {
+): TestExtendingOrExpecter<undefined> | TargetActions<T> => {
   if (isTestState(subjectOrTestState)) {
-    return createActor(undefined!, subjectOrTestState)() as any;
+    return createActor(undefined!, subjectOrTestState)();
   }
 
   return withExtensions(
@@ -129,13 +129,13 @@ function createExpectOrAndApi<TSubject>(
 
 function addTestStep<TTarget>(
   testState: TestState,
-  actions: Extension<TTarget>[],
+  userActions: Extension<TTarget>[],
   target: Ref<TTarget>,
   negateAssertion: boolean = false
 ): void {
-  for (const action of actions) {
+  userActions.forEach((action) =>
     action(target, {
-      negateAssertion: negateAssertion,
+      negateAssertion,
       addTestStep: (...steps) => {
         testState.steps = [...testState.steps, ...steps];
       },
@@ -149,8 +149,8 @@ function addTestStep<TTarget>(
       wrapTestExecution: (wrapFn) => {
         testState.testExecutionWrapperFn = wrapFn;
       },
-    });
-  }
+    })
+  );
 }
 
 function isExtensionFn<T>(value: any): value is Extension<T> {

@@ -1,8 +1,5 @@
 export type Ref<T> = () => T;
-export type ExtensionFn<T> = (
-  target: Ref<T>,
-  meta: TestEnv
-) => void | Promise<void>;
+export type ExtensionFn<T> = (target: Ref<T>, meta: TestEnv) => void;
 export type Extension<T> = ExtensionFn<T> & {
   __valestoryType: "extension";
 };
