@@ -15,22 +15,33 @@ import {
 } from "./types";
 
 const createTestApi = <T>(
-  subjectOrTestState: Ref<T> | TestState,
   baseState: TestState = { steps: [], spyRequests: [] }
-): TestExtendingOrExpecter<undefined> | TargetActions<T> => {
-  if (isTestState(subjectOrTestState)) {
-    return createActor(undefined!, subjectOrTestState)();
-  }
+) => {
+  return (
+    subjectOrTestState: Ref<T> | TestState | Extension<undefined>,
+    ...otherExtensions: Extension<undefined>[]
+  ): TestExtendingOrExpecter<undefined> | TargetActions<T> => {
+    if (isTestState(subjectOrTestState)) {
+      return createActor(() => undefined, subjectOrTestState)();
+    }
 
-  return withExtensions(
-    {
-      has: createActor(subjectOrTestState, baseState),
-      does: createActor(subjectOrTestState, baseState),
-      is: createActor(subjectOrTestState, baseState),
-      calls: createCaller<T>(subjectOrTestState, baseState),
-    },
-    createExpectOrAndApi(baseState, subjectOrTestState)
-  );
+    if (isExtensionFn(subjectOrTestState)) {
+      return createActor(() => undefined, baseState)(
+        subjectOrTestState,
+        ...otherExtensions
+      );
+    }
+
+    return withExtensions(
+      {
+        has: createActor(subjectOrTestState, baseState),
+        does: createActor(subjectOrTestState, baseState),
+        is: createActor(subjectOrTestState, baseState),
+        calls: createCaller<T>(subjectOrTestState, baseState),
+      },
+      createExpectOrAndApi(baseState, subjectOrTestState)
+    );
+  };
 };
 
 const createActor =
@@ -44,7 +55,7 @@ const createActor =
     return extendOrExpectApi;
   };
 
-export const when: WhenStatement = createTestApi as WhenStatement;
+export const when: WhenStatement = createTestApi() as WhenStatement;
 
 // ---------------------------------
 // module internal code
@@ -103,7 +114,7 @@ function createExpectOrAndApi<TSubject>(
         )();
       } else {
         // case: target-ref
-        return createTestApi(refOrTestStateOrFirstAction, testState);
+        return createTestApi(testState)(refOrTestStateOrFirstAction);
       }
     }) as AndStatement<TSubject>,
     expect: <TObject>(object: Ref<TObject>): TestEnding<TObject> => {

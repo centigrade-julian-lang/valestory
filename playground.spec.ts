@@ -106,8 +106,21 @@ describe("ContactBook", () => {
     }
   }
 
+  it("should allow to pass extension fn to when", () => {
+    const state = { changed: false };
+    const update = createExtension((_, { addTestStep }) => {
+      addTestStep(() => {
+        state.changed = true;
+      });
+    });
+
+    return when(update)
+      .expect(the(state))
+      .to(haveState({ changed: true }));
+  });
+
   it("should allow to wrap the test body (e.g. to check if it threw)", () => {
-    return when(null!).does(throwError).expect().to(haveThrown());
+    return when(throwError).expect().to(haveThrown());
   });
 
   it("should allow to wrap the test body (e.g. to check if it threw) (negated)", () => {
