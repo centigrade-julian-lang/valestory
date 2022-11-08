@@ -1,10 +1,17 @@
 import { BehaviorSubject, tap } from "rxjs";
-import { the, when } from "./src";
-import { call, state } from "./src/actions";
-import { equal, haveCalled, haveState, haveThrown } from "./src/expectations";
-import { Valestory } from "./src/platform";
-import { TestExtendingOrExpecter } from "./src/types";
-import { createExtension } from "./src/utility";
+import {
+  call,
+  createExtension,
+  equal,
+  haveCalled,
+  haveState,
+  haveThrown,
+  state,
+  the,
+  when,
+} from "./src";
+import { Valestory } from "./src/core/platform";
+import { TestExtendingOrExpecter } from "./src/core/types";
 
 interface Address {
   street: string;

@@ -1,6 +1,8 @@
-import { when } from "./api";
-import { Ref } from "./types";
-import { createExtension } from "./utility";
+import { when } from "./index";
+import { Extension, ExtensionFn, Ref } from "./types";
+
+export const createExtension = <T>(actionFn: ExtensionFn<T>): Extension<T> =>
+  Object.assign(actionFn, { __valestoryType: "extension" } as const);
 
 export const initially = when(() => undefined).does();
 

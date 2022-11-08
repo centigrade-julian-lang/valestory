@@ -1,7 +1,7 @@
-import { ValestoryConfig } from "./config";
-import { check } from "./platform";
-import { Props, Ref } from "./types";
-import { createExtension } from "./utility";
+import { ValestoryConfig } from "../core/config";
+import { createExtension } from "../core/helper";
+import { check } from "../core/platform";
+import { Props, Ref } from "../core/types";
 
 export const haveState = <TTarget extends {}, TState extends TTarget>(
   stateDef: Partial<Props<TState>>
