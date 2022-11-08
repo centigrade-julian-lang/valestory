@@ -2,6 +2,7 @@ import { ValestoryConfig } from "../core/config";
 import { createExtension } from "../core/helper";
 import { check } from "../core/platform";
 import { Props, Ref } from "../core/types";
+import { CallAssertion } from "./types";
 
 export const haveState = <TTarget extends {}, TState extends TTarget>(
   stateDef: Partial<Props<TState>>
@@ -24,7 +25,7 @@ export const equal = <T, I extends T = T>(expected: I) =>
 
 export const haveCalled = <TTarget extends {}>(
   target: keyof TTarget,
-  opts: { returnValue?: any; times?: number | null } = {}
+  opts: CallAssertion = {}
 ) =>
   createExtension(
     (host: Ref<TTarget>, { setSpy, addTestStep, negateAssertion }) => {
@@ -37,7 +38,7 @@ export const haveCalled = <TTarget extends {}>(
         if (opts.times === null) times = undefined;
         else if (opts.times !== undefined) times = opts.times;
 
-        matcher(spy, negateAssertion, times);
+        matcher(spy, negateAssertion, times, opts.withArgs);
       });
     }
   );

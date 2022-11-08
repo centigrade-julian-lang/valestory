@@ -45,15 +45,23 @@ Valestory.config.override({
       await expect(testBodyFn).rejects.toThrow(error);
     }
   },
-  hasBeenCalled: (spy: any, negate, times?: number) => {
+  hasBeenCalled: (spy: any, negate, times?: number, withArgs?: any[]) => {
     if (negate) {
       times != null
         ? expect(spy).not.toHaveBeenCalledTimes(times)
         : expect(spy).not.toHaveBeenCalled();
+
+      if (withArgs != null) {
+        expect(spy).not.toHaveBeenCalledWith(...withArgs);
+      }
     } else {
       times != null
         ? expect(spy).toHaveBeenCalledTimes(times)
         : expect(spy).toHaveBeenCalled();
+
+      if (withArgs != null) {
+        expect(spy).toHaveBeenCalledWith(...withArgs);
+      }
     }
   },
   isEqual: (a: any, b: any, negate: boolean) =>
@@ -136,7 +144,7 @@ describe("ContactBook", () => {
       .to(haveCalled("doSomething", { times: 2 }));
   });
 
-  it("should spy on targets (times 2)", () => {
+  it("should spy on targets (any times)", () => {
     const host = {
       doSomething: () => {},
     };
@@ -163,6 +171,17 @@ describe("ContactBook", () => {
         haveCalled("spyOnMe", { returnValue: true }),
         haveState({ called: true })
       );
+  });
+
+  it("should spy on targets (with args)", () => {
+    const host = {
+      doSomething: (a: number, b: string) => {},
+    };
+
+    return when(() => host)
+      .calls("doSomething", 42, "hello")
+      .expect(() => host)
+      .to(haveCalled("doSomething", { withArgs: [42, "hello"] }));
   });
 
   it("should spy on targets (bind to target)", () => {
