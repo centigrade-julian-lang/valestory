@@ -132,6 +132,14 @@ describe("ContactBook", () => {
     expect(b.steps.length).toBe(2);
   });
 
+  it("should add steps from imported test-expression", () => {
+    const a = when(somethingAsync());
+    const b = when().and(somethingAsync()).and(a);
+
+    expect(a.steps.length).toBe(1);
+    expect(b.steps.length).toBe(2);
+  });
+
   it("should throw if a spy could not be set", async () => {
     try {
       await when()

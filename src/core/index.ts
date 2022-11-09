@@ -28,7 +28,7 @@ const createTestApi = <T = undefined>(
     if (isTestState(subjectOrExtensionOrTestState)) {
       return createActor(
         () => subject?.(),
-        clone(subjectOrExtensionOrTestState)
+        clone(subjectOrExtensionOrTestState, baseState)
       )();
     }
 
@@ -236,7 +236,7 @@ function clone(
   testState: TestState = { spyRequests: [], steps: [] }
 ): TestState {
   return {
-    steps: [...importedTestState.steps, ...testState.steps],
+    steps: [...testState.steps, ...importedTestState.steps],
     spyRequests: [...testState.spyRequests, ...importedTestState.spyRequests],
     // bug: rest of test state is not imported, e.g. test exec wrapper
   };
