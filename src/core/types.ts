@@ -35,9 +35,6 @@ export interface SpyRequest<T = any> {
   target: keyof T;
   spyInstance: SpyInstance;
 }
-export type WhenStatement = TargetedExtension &
-  TestImport &
-  DoesStatement<undefined>;
 export type TestImport = (
   state: TestState
 ) => TestExtendingOrExpecter<undefined>;
@@ -62,7 +59,10 @@ export interface TestExtendingOrExpecter<T> extends TestState {
   expect: TestExpectation;
 }
 
-export type AndStatement<T> = WhenStatement & DoesStatement<T>;
+export type WhenStatement<T> = TargetedExtension &
+  TestImport &
+  DoesStatement<T>;
+export type AndStatement<T> = WhenStatement<T>;
 export type TestExpectation = <T>(target?: Ref<T>) => TestEnding<T>;
 export interface TestEnding<Target> {
   not: Omit<TestEnding<Target>, "not">;

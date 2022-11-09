@@ -2,7 +2,6 @@ import { call } from "../extensions/actions";
 import { ValestoryConfig } from "./config";
 import { Valestory } from "./platform";
 import {
-  AndStatement,
   CallStatement,
   Extension,
   Ref,
@@ -15,7 +14,8 @@ import {
 } from "./types";
 
 const createTestApi = <T>(
-  baseState: TestState = { steps: [], spyRequests: [] }
+  baseState: TestState = { steps: [], spyRequests: [] },
+  subject?: Ref<T>
 ) => {
   return (
     subjectOrExtensionOrTestState:
@@ -24,9 +24,12 @@ const createTestApi = <T>(
       | Extension<undefined>
       | undefined,
     ...otherExtensions: Extension<undefined>[]
-  ): TestExtendingOrExpecter<undefined> | TargetActions<T> => {
+  ): TestExtendingOrExpecter<T | undefined> | TargetActions<T> => {
     if (isTestState(subjectOrExtensionOrTestState)) {
-      return createActor(() => undefined, subjectOrExtensionOrTestState)();
+      return createActor(
+        () => subject?.(),
+        clone(subjectOrExtensionOrTestState)
+      )();
     }
 
     if (
@@ -37,17 +40,17 @@ const createTestApi = <T>(
         subjectOrExtensionOrTestState,
         ...otherExtensions,
       ].filter((x): x is Extension<any> => x != null);
-      return createActor(() => undefined, baseState)(...extensions);
+      return createActor(() => subject?.(), clone(baseState))(...extensions);
     }
 
     return withApiExtensions(
       {
-        has: createActor(subjectOrExtensionOrTestState, baseState),
-        does: createActor(subjectOrExtensionOrTestState, baseState),
-        is: createActor(subjectOrExtensionOrTestState, baseState),
-        calls: createCaller<T>(subjectOrExtensionOrTestState, baseState),
+        has: createActor(subjectOrExtensionOrTestState, clone(baseState)),
+        does: createActor(subjectOrExtensionOrTestState, clone(baseState)),
+        is: createActor(subjectOrExtensionOrTestState, clone(baseState)),
+        calls: createCaller<T>(subjectOrExtensionOrTestState, clone(baseState)),
       },
-      createExpectOrAndApi(baseState, subjectOrExtensionOrTestState)
+      createExpectOrAndApi(clone(baseState), subjectOrExtensionOrTestState)
     );
   };
 };
@@ -63,7 +66,7 @@ const createActor =
     return extendOrExpectApi;
   };
 
-export const when: WhenStatement = createTestApi() as WhenStatement;
+export const when = createTestApi() as WhenStatement<undefined>;
 
 // ---------------------------------
 // module internal code
@@ -102,29 +105,7 @@ function createExpectOrAndApi<TSubject>(
 ): TestExtendingOrExpecter<TSubject> {
   return {
     ...testState,
-    and: (<R extends Ref<any>>(
-      refOrTestStateOrFirstAction: R | TestState | Extension<TSubject>,
-      ...restOfActions: Extension<TSubject>[]
-    ) => {
-      if (isExtensionFn<TSubject>(refOrTestStateOrFirstAction)) {
-        // case: extension-fn import
-        return createActor(subject, testState)(
-          refOrTestStateOrFirstAction,
-          ...restOfActions
-        );
-      } else if (isTestState(refOrTestStateOrFirstAction)) {
-        // case: test-state import
-        return createActor(
-          subject,
-          updatePartially(testState, {
-            steps: testState.steps.concat(refOrTestStateOrFirstAction.steps),
-          })
-        )();
-      } else {
-        // case: target-ref
-        return createTestApi(testState)(refOrTestStateOrFirstAction);
-      }
-    }) as AndStatement<TSubject>,
+    and: createTestApi(testState, subject) as any,
     expect: <TObject>(object: Ref<TObject>): TestEnding<TObject> => {
       const assertions = (negate: boolean) => {
         return {
@@ -152,8 +133,8 @@ function addTestStep<TTarget>(
   target: Ref<TTarget>,
   negateAssertion: boolean = false
 ): void {
-  userActions.forEach((action) =>
-    action(target, {
+  userActions.forEach((action) => {
+    const userAction: any = action(target, {
       negateAssertion,
       addTestStep: (...steps) => {
         testState.steps = [...testState.steps, ...steps];
@@ -168,8 +149,19 @@ function addTestStep<TTarget>(
       wrapTestExecution: (wrapFn) => {
         testState.testExecutionWrapperFn = wrapFn;
       },
-    })
-  );
+    });
+
+    warnIfPromise(userAction, action);
+  });
+}
+
+function warnIfPromise(userAction: any, action: Extension<any>) {
+  if (userAction instanceof Promise) {
+    console.warn(
+      "[valestory] processed action that returned a promise!",
+      action.toString()
+    );
+  }
 }
 
 function isExtensionFn<T>(value: any): value is Extension<T> {
@@ -188,29 +180,7 @@ async function executeTest(testState: TestState): Promise<void> {
   // hint: allows the user to wrap the whole test body; e.g. for: expect(() => testBody()).toThrow()
   const testWrapFn =
     testState.testExecutionWrapperFn ?? ((execTest) => execTest());
-  const executeTestSteps = createExecutor(testState);
 
-  // clear memory
-  testState.spyRequests = [];
-  testState.steps = [];
-  testState.testExecutionWrapperFn = undefined;
-
-  // run
-  await testWrapFn(executeTestSteps);
-
-  if (testState.spyRequests.length > 0) {
-    const count = testState.spyRequests.length;
-    const names = testState.spyRequests.map((s) => s.target);
-
-    throw new Error(
-      `[valestory] Could not set all spies. ${count} spies could not be set: ${names.join(
-        ", "
-      )}.`
-    );
-  }
-}
-
-function createExecutor(testState: TestState) {
   // hint: do not rely on shared testState as this can lead to strange errors
   // if one test fails, others can fail, too, even if they should succeed.
   // this can be avoided by not referencing the testState, but keeping the state local
@@ -225,7 +195,25 @@ function createExecutor(testState: TestState) {
       await step();
     }
   };
-  return executeTestSteps;
+
+  // clear memory
+  testState.spyRequests = [];
+  testState.steps = [];
+  testState.testExecutionWrapperFn = undefined;
+
+  // run
+  await testWrapFn(executeTestSteps);
+
+  if (spyRequests.length > 0) {
+    const count = spyRequests.length;
+    const names = spyRequests.map((s) => s.target);
+
+    throw new Error(
+      `[valestory] Could not set all spies. ${count} spies could not be set: ${names.join(
+        ", "
+      )}.`
+    );
+  }
 }
 
 function trySetSpies(spyRequests: SpyRequest[]): SpyRequest[] {
@@ -243,9 +231,13 @@ function trySetSpies(spyRequests: SpyRequest[]): SpyRequest[] {
   });
 }
 
-function updatePartially<T extends {}>(original: T, update: Partial<T>) {
+function clone(
+  importedTestState: TestState,
+  testState: TestState = { spyRequests: [], steps: [] }
+): TestState {
   return {
-    ...original,
-    ...update,
+    steps: [...importedTestState.steps, ...testState.steps],
+    spyRequests: [...importedTestState.spyRequests, ...testState.spyRequests],
+    // bug: rest of test state is not imported, e.g. test exec wrapper
   };
 }

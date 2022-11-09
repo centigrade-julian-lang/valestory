@@ -106,6 +106,37 @@ describe("ContactBook", () => {
     }
   }
 
+  it("should produce new tests each time called when", () => {
+    const a = when().expect().to();
+    const b = when().expect().to();
+
+    expect(a).not.toBe(b);
+    expect(a).toEqual(b);
+  });
+
+  it("should produce new tests each time called when", () => {
+    const x = when();
+    const a = when(x);
+
+    expect(a.steps).not.toBe(x.steps);
+    expect(a.spyRequests).not.toBe(x.spyRequests);
+    expect(a.steps).toEqual(x.steps);
+    expect(a.spyRequests).toEqual(x.spyRequests);
+  });
+
+  it("should throw if a spy could not be set", async () => {
+    try {
+      await when()
+        .expect(() => null!)
+        .not.to(haveCalled("x"));
+
+      fail("should throw");
+    } catch (err) {
+      const error = err as Error;
+      expect(error.message).toContain("[valestory] Could not set all spies.");
+    }
+  });
+
   it("should allow to pass extension fn to when", () => {
     const state = { changed: false };
     const update = createExtension((_, { addTestStep }) => {
@@ -242,12 +273,29 @@ describe("ContactBook", () => {
       .to(haveState({ numberOfContacts: 42 }));
   });
 
+  it("should allow for override chained external classes (via when)", () => {
+    return when(once.serviceHasState({ numberOfContacts: 42 }))
+      .and(the(service))
+      .has(state({ numberOfContacts: 24 }))
+      .expect(the(service))
+      .to(haveState({ numberOfContacts: 24 }));
+  });
+
   it("should allow for chaining (external classes, via and)", () => {
     return when(the(service))
-      .does()
+      .has(state({ numberOfContacts: 24 }))
       .and(once.serviceHasState({ numberOfContacts: 42 }))
       .expect(the(service))
       .to(haveState({ numberOfContacts: 42 }));
+  });
+
+  it("should allow for override chained external classes (via and)", () => {
+    return when()
+      .and(once.serviceHasState({ numberOfContacts: 42 }))
+      .and(the(service))
+      .has(state({ numberOfContacts: 24 }))
+      .expect(the(service))
+      .to(haveState({ numberOfContacts: 24 }));
   });
 
   it("should allow for intermediate checks (via will)", () => {
