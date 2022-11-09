@@ -188,14 +188,14 @@ async function executeTest(testState: TestState): Promise<void> {
   // hint: allows the user to wrap the whole test body; e.g. for: expect(() => testBody()).toThrow()
   const testWrapFn =
     testState.testExecutionWrapperFn ?? ((execTest) => execTest());
+  const executeTestSteps = createExecutor(testState);
 
-  const executeTestSteps = async () => {
-    for (const step of testState.steps) {
-      testState.spyRequests = trySetSpies(testState.spyRequests);
-      await step();
-    }
-  };
+  // clear memory
+  testState.spyRequests = [];
+  testState.steps = [];
+  testState.testExecutionWrapperFn = undefined;
 
+  // run
   await testWrapFn(executeTestSteps);
 
   if (testState.spyRequests.length > 0) {
@@ -208,10 +208,24 @@ async function executeTest(testState: TestState): Promise<void> {
       )}.`
     );
   }
+}
 
-  // clear memory
-  testState.spyRequests = [];
-  testState.steps = [];
+function createExecutor(testState: TestState) {
+  // hint: do not rely on shared testState as this can lead to strange errors
+  // if one test fails, others can fail, too, even if they should succeed.
+  // this can be avoided by not referencing the testState, but keeping the state local
+  // to this function. Maybe some async fn is not correctly awaited, and thus, the access
+  // to the testState is something like a "side-effect".
+  let spyRequests = testState.spyRequests;
+  const steps = testState.steps;
+
+  const executeTestSteps = async () => {
+    for (const step of steps) {
+      spyRequests = trySetSpies(spyRequests);
+      await step();
+    }
+  };
+  return executeTestSteps;
 }
 
 function trySetSpies(spyRequests: SpyRequest[]): SpyRequest[] {
