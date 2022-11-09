@@ -124,11 +124,11 @@ describe("ContactBook", () => {
   });
 
   it("should allow to wrap the test body (e.g. to check if it threw) (negated)", () => {
-    return when(null!).does().expect().not.to(haveThrown());
+    return when().expect().not.to(haveThrown());
   });
 
   it("should execute api-extension functions", () => {
-    (when(null!) as any)
+    return (when(() => null) as any)
       .markExtensionExecutedTrue()
       .expect(() => wasExtensionExecuted)
       .to(equal(true));
@@ -213,7 +213,7 @@ describe("ContactBook", () => {
   });
 
   it("should negate (basic)", () => {
-    when(the(service))
+    return when(the(service))
       .has(state({ numberOfContacts: 42 }))
       .expect(the(service))
       .not.to(haveState({ numberOfContacts: 24 }));
@@ -231,19 +231,19 @@ describe("ContactBook", () => {
     () => when(the(service)).is(state({ numberOfContacts: 42 })),
     () => when(the(service)).does(state({ numberOfContacts: 42 })),
   ])("should allow for chaining (action)", (with42Contacts) => {
-    when(with42Contacts())
+    return when(with42Contacts())
       .expect(the(service))
       .to(haveState({ numberOfContacts: 42 }));
   });
 
   it("should allow for chaining (external classes, via when)", () => {
-    when(once.serviceHasState({ numberOfContacts: 42 }))
+    return when(once.serviceHasState({ numberOfContacts: 42 }))
       .expect(the(service))
       .to(haveState({ numberOfContacts: 42 }));
   });
 
   it("should allow for chaining (external classes, via and)", () => {
-    when(the(service))
+    return when(the(service))
       .does()
       .and(once.serviceHasState({ numberOfContacts: 42 }))
       .expect(the(service))
@@ -274,7 +274,7 @@ describe("ContactBook", () => {
       was.executed = true;
     });
 
-    when(the(service))
+    return when(the(service))
       .has(state({ numberOfContacts: 12 }))
       .and(check)
       .expect(() => was)

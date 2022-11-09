@@ -18,28 +18,36 @@ const createTestApi = <T>(
   baseState: TestState = { steps: [], spyRequests: [] }
 ) => {
   return (
-    subjectOrTestState: Ref<T> | TestState | Extension<undefined>,
+    subjectOrExtensionOrTestState:
+      | Ref<T>
+      | TestState
+      | Extension<undefined>
+      | undefined,
     ...otherExtensions: Extension<undefined>[]
   ): TestExtendingOrExpecter<undefined> | TargetActions<T> => {
-    if (isTestState(subjectOrTestState)) {
-      return createActor(() => undefined, subjectOrTestState)();
+    if (isTestState(subjectOrExtensionOrTestState)) {
+      return createActor(() => undefined, subjectOrExtensionOrTestState)();
     }
 
-    if (isExtensionFn(subjectOrTestState)) {
-      return createActor(() => undefined, baseState)(
-        subjectOrTestState,
-        ...otherExtensions
-      );
+    if (
+      isExtensionFn(subjectOrExtensionOrTestState) ||
+      subjectOrExtensionOrTestState == null
+    ) {
+      const extensions = [
+        subjectOrExtensionOrTestState,
+        ...otherExtensions,
+      ].filter((x): x is Extension<any> => x != null);
+      return createActor(() => undefined, baseState)(...extensions);
     }
 
-    return withExtensions(
+    return withApiExtensions(
       {
-        has: createActor(subjectOrTestState, baseState),
-        does: createActor(subjectOrTestState, baseState),
-        is: createActor(subjectOrTestState, baseState),
-        calls: createCaller<T>(subjectOrTestState, baseState),
+        has: createActor(subjectOrExtensionOrTestState, baseState),
+        does: createActor(subjectOrExtensionOrTestState, baseState),
+        is: createActor(subjectOrExtensionOrTestState, baseState),
+        calls: createCaller<T>(subjectOrExtensionOrTestState, baseState),
       },
-      createExpectOrAndApi(baseState, subjectOrTestState)
+      createExpectOrAndApi(baseState, subjectOrExtensionOrTestState)
     );
   };
 };
@@ -72,7 +80,7 @@ function createCaller<T>(
   };
 }
 
-function withExtensions<T, C>(
+function withApiExtensions<T, C>(
   apiToExtend: TargetActions<T>,
   apiToContinueWith: C
 ): TargetActions<T> {
