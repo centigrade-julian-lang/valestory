@@ -13,7 +13,7 @@ import {
   WhenStatement,
 } from "./types";
 
-const createTestApi = <T>(
+const createTestApi = <T = undefined>(
   baseState: TestState = { steps: [], spyRequests: [] },
   subject?: Ref<T>
 ) => {
@@ -237,7 +237,7 @@ function clone(
 ): TestState {
   return {
     steps: [...importedTestState.steps, ...testState.steps],
-    spyRequests: [...importedTestState.spyRequests, ...testState.spyRequests],
+    spyRequests: [...testState.spyRequests, ...importedTestState.spyRequests],
     // bug: rest of test state is not imported, e.g. test exec wrapper
   };
 }

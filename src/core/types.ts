@@ -59,9 +59,9 @@ export interface TestExtendingOrExpecter<T> extends TestState {
   expect: TestExpectation;
 }
 
-export type WhenStatement<T> = TargetedExtension &
-  TestImport &
-  DoesStatement<T>;
+export type WhenStatement<T> = DoesStatement<T> &
+  TargetedExtension &
+  TestImport;
 export type AndStatement<T> = WhenStatement<T>;
 export type TestExpectation = <T>(target?: Ref<T>) => TestEnding<T>;
 export interface TestEnding<Target> {
