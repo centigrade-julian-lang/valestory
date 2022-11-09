@@ -140,6 +140,25 @@ describe("ContactBook", () => {
     expect(b.steps.length).toBe(2);
   });
 
+  it("should call expressions in the right order", async () => {
+    const order: string[] = [];
+    const createExt = (label: string) =>
+      createExtension((_, { addTestStep }) =>
+        addTestStep(() => {
+          order.push(label);
+        })
+      );
+
+    const a = createExt("a");
+    const b = createExt("b");
+    const c = createExt("c");
+
+    const x = when(a).and(b, c).expect().will(c);
+    await when(x).and(a).expect().to(b, c);
+
+    expect(order.join("")).toEqual("abccabc");
+  });
+
   it("should throw if a spy could not be set", async () => {
     try {
       await when()
