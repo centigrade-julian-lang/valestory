@@ -1,5 +1,5 @@
 import { when } from "./index";
-import { Extension, ExtensionFn } from "./types";
+import { Extension, ExtensionFn, Ref } from "./types";
 
 export const createExtension = <T>(actionFn: ExtensionFn<T>): Extension<T> =>
   Object.assign(actionFn, { __valestoryType: "extension" } as const);
@@ -7,13 +7,13 @@ export const createExtension = <T>(actionFn: ExtensionFn<T>): Extension<T> =>
 export const initially = when();
 
 export const log = (output?: (value: any) => any) =>
-  createExtension((value, { addTestStep }) => {
+  createExtension((value: Ref<any>, { addTestStep }) => {
     addTestStep(() => {
       const resolved = value();
       const additionalOutput = output?.(resolved) ?? [];
       const valuesToPrint = Array.isArray(additionalOutput)
         ? additionalOutput
-        : [];
+        : [additionalOutput];
 
       output ? console.log(...valuesToPrint) : console.log(resolved);
     });
