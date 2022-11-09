@@ -114,7 +114,7 @@ describe("ContactBook", () => {
     expect(a).toEqual(b);
   });
 
-  it("should produce new tests each time called when", () => {
+  it("should produce new test-contents each time called when", () => {
     const x = when();
     const a = when(x);
 
@@ -122,6 +122,14 @@ describe("ContactBook", () => {
     expect(a.spyRequests).not.toBe(x.spyRequests);
     expect(a.steps).toEqual(x.steps);
     expect(a.spyRequests).toEqual(x.spyRequests);
+  });
+
+  it("should add steps from imported test-expression", () => {
+    const a = when(somethingAsync());
+    const b = when(a).and(somethingAsync());
+
+    expect(a.steps.length).toBe(1);
+    expect(b.steps.length).toBe(2);
   });
 
   it("should throw if a spy could not be set", async () => {
