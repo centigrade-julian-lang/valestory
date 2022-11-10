@@ -1,0 +1,35 @@
+{
+  "extends": ["eslint:recommended", "plugin:boundaries/recommended"],
+  "plugins": ["boundaries"],
+  "parser": "@typescript-eslint/parser",
+  "settings": {
+    "boundaries/elements": [
+      {
+        "type": "core",
+        "pattern": "core/*"
+      },
+      {
+        "type": "extensions",
+        "pattern": "extensions/*"
+      }
+    ]
+  },
+  "rules": {
+    "boundaries/element-types": [
+      2,
+      {
+        "default": "disallow",
+        "rules": [
+          {
+            "from": "core",
+            "allow": ["core"]
+          },
+          {
+            "from": "extensions",
+            "allow": ["extensions", "core"]
+          }
+        ]
+      }
+    ]
+  }
+}
