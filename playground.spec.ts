@@ -1,10 +1,17 @@
 import { BehaviorSubject, tap } from "rxjs";
-import { the, when } from "./src";
-import { call, state } from "./src/actions";
+import {
+  call,
+  createExtension,
+  equal,
+  haveCalled,
+  haveState,
+  haveThrown,
+  state,
+  the,
+  when,
+} from "./src";
 import { Valestory } from "./src/core/platform";
-import { equal, haveCalled, haveState } from "./src/expectations";
-import { TestExtendingOrExpecter } from "./src/types";
-import { createExtension } from "./src/utility";
+import { TestExtendingOrExpecter } from "./src/core/types";
 
 interface Address {
   street: string;
@@ -27,15 +34,34 @@ const service = new ContactBook();
 
 Valestory.config.override({
   spyFactory: (value) => jest.fn().mockReturnValue(value),
-  hasBeenCalled: (spy: any, negate, times?: number) => {
+  didThrow: async (testBodyFn, negate, error) => {
+    if (negate) {
+      if (error != null) {
+        await expect(testBodyFn).rejects.not.toThrow(error);
+      } else {
+        await expect(testBodyFn()).resolves.not.toThrowError();
+      }
+    } else {
+      await expect(testBodyFn).rejects.toThrow(error);
+    }
+  },
+  hasBeenCalled: (spy: any, negate, times?: number, withArgs?: any[]) => {
     if (negate) {
       times != null
         ? expect(spy).not.toHaveBeenCalledTimes(times)
         : expect(spy).not.toHaveBeenCalled();
+
+      if (withArgs != null) {
+        expect(spy).not.toHaveBeenCalledWith(...withArgs);
+      }
     } else {
       times != null
         ? expect(spy).toHaveBeenCalledTimes(times)
         : expect(spy).toHaveBeenCalled();
+
+      if (withArgs != null) {
+        expect(spy).toHaveBeenCalledWith(...withArgs);
+      }
     }
   },
   isEqual: (a: any, b: any, negate: boolean) =>
@@ -68,14 +94,107 @@ describe("ContactBook", () => {
       );
     });
 
+  const throwError = createExtension((_, { addTestStep }) => {
+    addTestStep(() => {
+      throw new Error("error!!");
+    });
+  });
+
   class once {
     static serviceHasState(stateDef: any) {
       return when(the(service)).does(state(stateDef));
     }
   }
 
+  it("should produce new tests each time called when", () => {
+    const a = when().expect().to();
+    const b = when().expect().to();
+
+    expect(a).not.toBe(b);
+    expect(a).toEqual(b);
+  });
+
+  it("should produce new test-contents each time called when", () => {
+    const x = when();
+    const a = when(x);
+
+    expect(a.steps).not.toBe(x.steps);
+    expect(a.spyRequests).not.toBe(x.spyRequests);
+    expect(a.steps).toEqual(x.steps);
+    expect(a.spyRequests).toEqual(x.spyRequests);
+  });
+
+  it("should add steps from imported test-expression", () => {
+    const a = when(somethingAsync());
+    const b = when(a).and(somethingAsync());
+
+    expect(a.steps.length).toBe(1);
+    expect(b.steps.length).toBe(2);
+  });
+
+  it("should add steps from imported test-expression", () => {
+    const a = when(somethingAsync());
+    const b = when().and(somethingAsync()).and(a);
+
+    expect(a.steps.length).toBe(1);
+    expect(b.steps.length).toBe(2);
+  });
+
+  it("should call expressions in the right order", async () => {
+    const order: string[] = [];
+    const createExt = (label: string) =>
+      createExtension((_, { addTestStep }) =>
+        addTestStep(() => {
+          order.push(label);
+        })
+      );
+
+    const a = createExt("a");
+    const b = createExt("b");
+    const c = createExt("c");
+
+    const x = when(a).and(b, c).expect().will(c);
+    await when(x).and(a).expect().to(b, c);
+
+    expect(order.join("")).toEqual("abccabc");
+  });
+
+  it("should throw if a spy could not be set", async () => {
+    try {
+      await when()
+        .expect(() => null!)
+        .not.to(haveCalled("x"));
+
+      fail("should throw");
+    } catch (err) {
+      const error = err as Error;
+      expect(error.message).toContain("[valestory] Could not set all spies.");
+    }
+  });
+
+  it("should allow to pass extension fn to when", () => {
+    const state = { changed: false };
+    const update = createExtension((_, { addTestStep }) => {
+      addTestStep(() => {
+        state.changed = true;
+      });
+    });
+
+    return when(update)
+      .expect(the(state))
+      .to(haveState({ changed: true }));
+  });
+
+  it("should allow to wrap the test body (e.g. to check if it threw)", () => {
+    return when(throwError).expect().to(haveThrown());
+  });
+
+  it("should allow to wrap the test body (e.g. to check if it threw) (negated)", () => {
+    return when().expect().not.to(haveThrown());
+  });
+
   it("should execute api-extension functions", () => {
-    (when(null!) as any)
+    return (when(() => null) as any)
       .markExtensionExecutedTrue()
       .expect(() => wasExtensionExecuted)
       .to(equal(true));
@@ -104,7 +223,7 @@ describe("ContactBook", () => {
       .to(haveCalled("doSomething", { times: 2 }));
   });
 
-  it("should spy on targets (times 2)", () => {
+  it("should spy on targets (any times)", () => {
     const host = {
       doSomething: () => {},
     };
@@ -133,6 +252,17 @@ describe("ContactBook", () => {
       );
   });
 
+  it("should spy on targets (with args)", () => {
+    const host = {
+      doSomething: (a: number, b: string) => {},
+    };
+
+    return when(() => host)
+      .calls("doSomething", 42, "hello")
+      .expect(() => host)
+      .to(haveCalled("doSomething", { withArgs: [42, "hello"] }));
+  });
+
   it("should spy on targets (bind to target)", () => {
     class Service {
       called = false;
@@ -149,7 +279,7 @@ describe("ContactBook", () => {
   });
 
   it("should negate (basic)", () => {
-    when(the(service))
+    return when(the(service))
       .has(state({ numberOfContacts: 42 }))
       .expect(the(service))
       .not.to(haveState({ numberOfContacts: 24 }));
@@ -167,23 +297,40 @@ describe("ContactBook", () => {
     () => when(the(service)).is(state({ numberOfContacts: 42 })),
     () => when(the(service)).does(state({ numberOfContacts: 42 })),
   ])("should allow for chaining (action)", (with42Contacts) => {
-    when(with42Contacts())
+    return when(with42Contacts())
       .expect(the(service))
       .to(haveState({ numberOfContacts: 42 }));
   });
 
   it("should allow for chaining (external classes, via when)", () => {
-    when(once.serviceHasState({ numberOfContacts: 42 }))
+    return when(once.serviceHasState({ numberOfContacts: 42 }))
       .expect(the(service))
       .to(haveState({ numberOfContacts: 42 }));
   });
 
+  it("should allow for override chained external classes (via when)", () => {
+    return when(once.serviceHasState({ numberOfContacts: 42 }))
+      .and(the(service))
+      .has(state({ numberOfContacts: 24 }))
+      .expect(the(service))
+      .to(haveState({ numberOfContacts: 24 }));
+  });
+
   it("should allow for chaining (external classes, via and)", () => {
-    when(the(service))
-      .does()
+    return when(the(service))
+      .has(state({ numberOfContacts: 24 }))
       .and(once.serviceHasState({ numberOfContacts: 42 }))
       .expect(the(service))
       .to(haveState({ numberOfContacts: 42 }));
+  });
+
+  it("should allow for override chained external classes (via and)", () => {
+    return when()
+      .and(once.serviceHasState({ numberOfContacts: 42 }))
+      .and(the(service))
+      .has(state({ numberOfContacts: 24 }))
+      .expect(the(service))
+      .to(haveState({ numberOfContacts: 24 }));
   });
 
   it("should allow for intermediate checks (via will)", () => {
@@ -210,7 +357,7 @@ describe("ContactBook", () => {
       was.executed = true;
     });
 
-    when(the(service))
+    return when(the(service))
       .has(state({ numberOfContacts: 12 }))
       .and(check)
       .expect(() => was)

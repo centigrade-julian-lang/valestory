@@ -1,8 +1,5 @@
 export type Ref<T> = () => T;
-export type ExtensionFn<T> = (
-  target: Ref<T>,
-  meta: TestEnv
-) => void | Promise<void>;
+export type ExtensionFn<T> = (target: Ref<T>, meta: TestEnv) => void;
 export type Extension<T> = ExtensionFn<T> & {
   __valestoryType: "extension";
 };
@@ -10,12 +7,19 @@ export type Extension<T> = ExtensionFn<T> & {
 export interface TestEnv {
   negateAssertion: boolean;
   addTestStep: (...steps: TestStep[]) => void;
+  /**
+   * Allows to wrap the whole test body, e.g. to assert that it throws an error (or not).
+   */
+  wrapTestExecution: (wrapFn: TestExecutionWrapperFn) => void;
   setSpy: <T extends {}>(
     host: Ref<T>,
     target: keyof T,
     returnValue?: any
   ) => SpyInstance;
 }
+export type TestExecutionWrapperFn = (
+  executeTest: () => Promise<void>
+) => Promise<void>;
 export type SpyInstance = any;
 export type Props<T extends {}> = Record<keyof T, any>;
 export type ApiExtensionFn<C> = (apiToContinueWith: C) => Function;
@@ -23,6 +27,7 @@ export type TestStep = () => Promise<void> | void;
 export interface TestState {
   steps: TestStep[];
   spyRequests: SpyRequest[];
+  testExecutionWrapperFn?: TestExecutionWrapperFn;
 }
 export interface InternalTestState extends TestState {}
 export interface SpyRequest<T = any> {
@@ -30,7 +35,6 @@ export interface SpyRequest<T = any> {
   target: keyof T;
   spyInstance: SpyInstance;
 }
-export type WhenStatement = TargetedExtension & TestImport;
 export type TestImport = (
   state: TestState
 ) => TestExtendingOrExpecter<undefined>;
@@ -55,8 +59,11 @@ export interface TestExtendingOrExpecter<T> extends TestState {
   expect: TestExpectation;
 }
 
-export type AndStatement<T> = WhenStatement & DoesStatement<T>;
-export type TestExpectation = <T>(target: Ref<T>) => TestEnding<T>;
+export type WhenStatement<T> = DoesStatement<T> &
+  TargetedExtension &
+  TestImport;
+export type AndStatement<T> = WhenStatement<T>;
+export type TestExpectation = <T>(target?: Ref<T>) => TestEnding<T>;
 export interface TestEnding<Target> {
   not: Omit<TestEnding<Target>, "not">;
   will: TestExpectator<Target, TestState>;

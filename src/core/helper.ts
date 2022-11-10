@@ -4,13 +4,18 @@ import { Extension, ExtensionFn, Ref } from "./types";
 export const createExtension = <T>(actionFn: ExtensionFn<T>): Extension<T> =>
   Object.assign(actionFn, { __valestoryType: "extension" } as const);
 
-export const initially = when(() => undefined).does();
+export const initially = when();
 
-export const log = (output?: Ref<any[]>) =>
-  createExtension((value, { addTestStep }) => {
+export const log = (output?: (value: any) => any) =>
+  createExtension((value: Ref<any>, { addTestStep }) => {
     addTestStep(() => {
-      const additionalOutput = output?.() ?? [];
-      output ? console.log(...additionalOutput) : console.log(value);
+      const resolved = value();
+      const additionalOutput = output?.(resolved) ?? [];
+      const valuesToPrint = Array.isArray(additionalOutput)
+        ? additionalOutput
+        : [additionalOutput];
+
+      output ? console.log(...valuesToPrint) : console.log(resolved);
     });
   });
 
