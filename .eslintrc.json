@@ -1,0 +1,44 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:boundaries/recommended"
+  ],
+  "plugins": ["boundaries", "@typescript-eslint"],
+  "parser": "@typescript-eslint/parser",
+  "settings": {
+    "boundaries/elements": [
+      2,
+      {
+        "type": "core",
+        "pattern": "core/**",
+        "mode": "folder"
+      },
+      {
+        "type": "extensions",
+        "pattern": "extensions/**",
+        "mode": "folder"
+      }
+    ]
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["error"],
+    "boundaries/element-types": [
+      2,
+      {
+        "default": "disallow",
+        "rules": [
+          {
+            "from": "core",
+            "allow": ["core"]
+          },
+          {
+            "from": "extensions",
+            "allow": ["extensions", "core"]
+          }
+        ]
+      }
+    ]
+  }
+}

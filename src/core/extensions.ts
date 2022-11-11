@@ -9,6 +9,7 @@ export class ValestoryApiExtensions {
 
   public static getExtension(
     name: string
+    // eslint-disable-next-line @typescript-eslint/ban-types
   ): (apiToContinueWith: any) => Function {
     if (!this.extensions.has(name))
       throw new Error(
