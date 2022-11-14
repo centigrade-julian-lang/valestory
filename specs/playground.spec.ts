@@ -171,6 +171,19 @@ describe("ContactBook", () => {
       .to(equal(3, { deviationTolerance: 1 }));
   });
 
+  it("should spy on targets (custom spy)", () => {
+    const customSpyInstance = jest.fn();
+    const host = {
+      doSomething: () => {},
+    };
+
+    return when(() => host)
+      .has(state({ doSomething: customSpyInstance }))
+      .and(call("doSomething"))
+      .expect(() => host)
+      .to(haveCalled(customSpyInstance));
+  });
+
   it("should spy on targets (times 1)", () => {
     const host = {
       doSomething: () => {},

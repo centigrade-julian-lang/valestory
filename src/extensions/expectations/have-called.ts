@@ -4,12 +4,18 @@ import { Ref } from "../../core/types";
 import { CallAssertion } from "../types";
 
 export const haveCalled = <TTarget extends {}>(
-  target: keyof TTarget,
+  target: keyof TTarget | object,
   opts: CallAssertion = {}
 ) =>
   createExtension(
     (host: Ref<TTarget>, { setSpy, addTestStep, negateAssertion }) => {
-      const spy = setSpy(host, target, opts?.returnValue);
+      const isPropertyName = typeof target === "string";
+
+      const spy = isPropertyName
+        ? setSpy(host, target, opts?.returnValue)
+        : // hint: the user may also pass in their own spy instance to use,
+          // if so, the user must install the spy themselves
+          target;
 
       addTestStep(() => {
         const matcher = ValestoryConfig.get("hasBeenCalled");

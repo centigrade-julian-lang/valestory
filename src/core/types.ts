@@ -14,7 +14,8 @@ export interface TestEnv {
   setSpy: <T extends {}>(
     host: Ref<T>,
     target: keyof T,
-    returnValue?: any
+    returnValue?: any,
+    spyInstanceToUse?: any
   ) => SpyInstance;
   debug: (interestedIn: "spies") => void;
 }
