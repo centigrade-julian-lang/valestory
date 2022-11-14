@@ -1,5 +1,7 @@
 import { ComparisonOpts, Valestory } from "./src";
 
+// TODO: looks like it is problematic to define the expectation adapters in setup-jest script as it is not expected to throw errors here,
+// as usual matchers do when a test fails.
 Valestory.config.override({
   spyFactory: (value) => jest.fn().mockReturnValue(value),
   didThrow: async (testBodyFn, negate, error) => {
