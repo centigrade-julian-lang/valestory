@@ -1,4 +1,6 @@
-import { call } from "../extensions/actions";
+// TODO: turn this into an api extension:
+// eslint-disable-next-line boundaries/element-types
+import { call } from "../extensions";
 import { ValestoryConfig } from "./config";
 import { Valestory } from "./platform";
 import {
@@ -131,7 +133,7 @@ function addTestStep<TTarget>(
   testState: TestState,
   userActions: Extension<TTarget>[],
   target: Ref<TTarget>,
-  negateAssertion: boolean = false
+  negateAssertion = false
 ): void {
   userActions.forEach((action) => {
     const userAction: any = action(target, {
