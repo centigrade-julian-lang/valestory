@@ -1,5 +1,7 @@
+import { ComparisonOpts } from "../../extensions/expectations";
+
 export interface ValestoryConfiguration {
-  isEqual: (a: any, b: any, negated: boolean) => void;
+  isEqual: (a: any, b: any, negated: boolean, opts: ComparisonOpts) => void;
   hasBeenCalled: (
     spy: any,
     negate: boolean,

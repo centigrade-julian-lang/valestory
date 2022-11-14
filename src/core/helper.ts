@@ -4,7 +4,7 @@ import { Extension, ExtensionFn, Ref } from "./types";
 export const createExtension = <T>(actionFn: ExtensionFn<T>): Extension<T> =>
   Object.assign(actionFn, { __valestoryType: "extension" } as const);
 
-export const initially = when();
+export const initially = () => when();
 
 export const log = (output?: (value: any) => any) =>
   createExtension((value: Ref<any>, { addTestStep }) => {

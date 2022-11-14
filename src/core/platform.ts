@@ -1,9 +1,14 @@
+import { ComparisonOpts } from "../extensions/expectations";
 import { ValestoryConfig } from "./config";
 import { ValestoryApiExtensions } from "./extensions";
 
-export const check = (value: any, negate: boolean) => ({
+export const check = (
+  value: any,
+  negate: boolean,
+  opts: ComparisonOpts = {}
+) => ({
   equals: (b: any) => {
-    return ValestoryConfig.get("isEqual")(value, b, negate);
+    return ValestoryConfig.get("isEqual")(value, b, negate, opts);
   },
   hasBeenCalled: (times?: number) => {
     return ValestoryConfig.get("hasBeenCalled")(value, negate, times);
