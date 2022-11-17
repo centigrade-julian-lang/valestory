@@ -8,10 +8,8 @@
     "url": ""
   },
   "scripts": {
-    "clean": "shx rm -rf dist",
-    "prebuild": "npm run clean && npm run build:types",
+    "prebuild": "shx rm -rf dist",
     "build": "ts-node tools/build.ts",
-    "build:types": "tsc src/index.ts --emitDeclarationOnly --declaration --declarationDir dist/types",
     "prepublish:lib": "npm run build && npm run test",
     "publish:lib": "cd dist && npm publish",
     "publish:alpha": "npm run publish:lib -- --tag alpha",

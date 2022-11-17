@@ -1,3 +1,4 @@
+import { exec } from "child_process";
 import { build, BuildOptions } from "esbuild";
 import { copyFile, outputFile } from "fs-extra";
 import { resolve } from "path";
@@ -11,6 +12,7 @@ const cwdPath = (path: string) => {
 class Program {
   static async main(production: boolean) {
     await this.buildLibrary(production);
+    await this.buildTypes();
     await this.createPackageJson();
     await this.copyDocs();
   }
@@ -34,6 +36,12 @@ class Program {
       format: "cjs",
       outfile: cwdPath("./dist/cjs/index.js"),
     });
+  }
+
+  private static async buildTypes() {
+    await this.runCommand(
+      "tsc src/index.ts --emitDeclarationOnly --declaration --declarationDir dist/types"
+    );
   }
 
   private static async createPackageJson() {
@@ -83,6 +91,15 @@ class Program {
 
   private static async copyDocs() {
     return copyFile(cwdPath("./README.md"), cwdPath("./dist/README.md"));
+  }
+
+  private static async runCommand(command: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      exec(command, (err) => {
+        if (err) reject(err);
+        resolve();
+      });
+    });
   }
 }
 
