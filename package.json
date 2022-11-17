@@ -1,6 +1,6 @@
 {
   "name": "valestory",
-  "version": "0.1.0-alpha.33",
+  "version": "0.1.0-alpha.34",
   "description": "",
   "homepage": "",
   "repository": {
@@ -19,7 +19,7 @@
     "lint": "eslint src/**/*.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "jlang",
   "license": "ISC",
   "devDependencies": {
     "@types/fs-extra": "^9.0.13",
