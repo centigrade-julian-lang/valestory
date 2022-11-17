@@ -171,16 +171,22 @@ describe("ContactBook", () => {
       .to(equal(3, { deviationTolerance: 1 }));
   });
 
+  it("should have no options for non-numbers", () => {
+    const x: unknown = {};
+
+    return initially().expect(the(x)).to(equal(x));
+  });
+
   it("should spy on targets (custom spy)", () => {
     const customSpyInstance = jest.fn();
     const host = {
       doSomething: () => {},
     };
 
-    return when(() => host)
+    return when(the(host))
       .has(state({ doSomething: customSpyInstance }))
       .and(call("doSomething"))
-      .expect(() => host)
+      .expect(the(host))
       .to(haveCalled(customSpyInstance));
   });
 
@@ -189,9 +195,9 @@ describe("ContactBook", () => {
       doSomething: () => {},
     };
 
-    return when(() => host)
+    return when(the(host))
       .calls("doSomething")
-      .expect(() => host)
+      .expect(the(host))
       .to(haveCalled("doSomething"));
   });
 
@@ -200,10 +206,10 @@ describe("ContactBook", () => {
       doSomething: () => {},
     };
 
-    return when(() => host)
+    return when(the(host))
       .calls("doSomething")
       .and(call("doSomething"))
-      .expect(() => host)
+      .expect(the(host))
       .to(haveCalled("doSomething", { times: 2 }));
   });
 
@@ -212,10 +218,10 @@ describe("ContactBook", () => {
       doSomething: () => {},
     };
 
-    return when(() => host)
+    return when(the(host))
       .calls("doSomething")
       .and(call("doSomething"))
-      .expect(() => host)
+      .expect(the(host))
       .to(haveCalled("doSomething", { times: null }));
   });
 
@@ -227,9 +233,9 @@ describe("ContactBook", () => {
       },
     };
 
-    return when(() => host)
+    return when(the(host))
       .calls("doSomething")
-      .expect(() => service)
+      .expect(the(service))
       .to(
         haveCalled("spyOnMe", { returnValue: true }),
         haveState({ called: true })
@@ -241,9 +247,9 @@ describe("ContactBook", () => {
       doSomething: (a: number, b: string) => {},
     };
 
-    return when(() => host)
+    return when(the(host))
       .calls("doSomething", 42, "hello")
-      .expect(() => host)
+      .expect(the(host))
       .to(haveCalled("doSomething", { withArgs: [42, "hello"] }));
   });
 
