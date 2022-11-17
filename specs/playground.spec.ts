@@ -171,7 +171,7 @@ describe("ContactBook", () => {
       .to(equal(3, { deviationTolerance: 1 }));
   });
 
-  it("should have no options for non-numbers", () => {
+  it("should compare other values successfully", () => {
     const x: unknown = {};
 
     return initially().expect(the(x)).to(equal(x));
