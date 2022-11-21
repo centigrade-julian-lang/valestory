@@ -6,8 +6,8 @@ export const createExtension = <T>(actionFn: ExtensionFn<T>): Extension<T> =>
 
 export const initially = when();
 
-export const log = (output?: (value: any) => any) =>
-  createExtension((value: Ref<any>, { addTestStep }) => {
+export const log = (output?: (value: unknown) => unknown) =>
+  createExtension((value: Ref<unknown>, { addTestStep }) => {
     addTestStep(() => {
       const resolved = value();
       const additionalOutput = output?.(resolved) ?? [];
@@ -19,7 +19,7 @@ export const log = (output?: (value: any) => any) =>
     });
   });
 
-export function the<T, K extends keyof T>(value: T): () => T;
+export function the<T>(value: T): () => T;
 export function the<T, K extends keyof T>(value: T, access: K): () => T[K];
 export function the<T, R>(value: T, access: (value: T) => R): () => R;
 export function the<T, K extends keyof T, R>(
