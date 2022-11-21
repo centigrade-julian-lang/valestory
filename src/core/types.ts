@@ -14,8 +14,10 @@ export interface TestEnv {
   setSpy: <T extends {}>(
     host: Ref<T>,
     target: keyof T,
-    returnValue?: any
+    returnValue?: any,
+    spyInstanceToUse?: any
   ) => SpyInstance;
+  debug: (interestedIn: "spies") => void;
 }
 export type TestExecutionWrapperFn = (
   executeTest: () => Promise<void>
@@ -24,9 +26,11 @@ export type SpyInstance = any;
 export type Props<T extends {}> = Record<keyof T, any>;
 export type ApiExtensionFn<C> = (apiToContinueWith: C) => Function;
 export type TestStep = () => Promise<void> | void;
+export type DebugMode = "spies";
 export interface TestState {
   steps: TestStep[];
   spyRequests: SpyRequest[];
+  debugOutput?: DebugMode;
   testExecutionWrapperFn?: TestExecutionWrapperFn;
 }
 export interface InternalTestState extends TestState {}

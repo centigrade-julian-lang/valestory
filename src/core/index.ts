@@ -1,4 +1,6 @@
-import { call } from "../extensions/actions";
+// TODO: turn this into an api extension:
+// eslint-disable-next-line boundaries/element-types
+import { call } from "../extensions";
 import { ValestoryConfig } from "./config";
 import { Valestory } from "./platform";
 import {
@@ -131,7 +133,7 @@ function addTestStep<TTarget>(
   testState: TestState,
   userActions: Extension<TTarget>[],
   target: Ref<TTarget>,
-  negateAssertion: boolean = false
+  negateAssertion = false
 ): void {
   userActions.forEach((action) => {
     const userAction: any = action(target, {
@@ -148,6 +150,9 @@ function addTestStep<TTarget>(
       },
       wrapTestExecution: (wrapFn) => {
         testState.testExecutionWrapperFn = wrapFn;
+      },
+      debug: (interestedIn) => {
+        testState.debugOutput = interestedIn;
       },
     });
 
@@ -187,11 +192,12 @@ async function executeTest(testState: TestState): Promise<void> {
   // to this function. Maybe some async fn is not correctly awaited, and thus, the access
   // to the testState is something like a "side-effect".
   let spyRequests = testState.spyRequests;
+  const debugOutput = testState.debugOutput;
   const steps = testState.steps;
 
   const executeTestSteps = async () => {
     for (const step of steps) {
-      spyRequests = trySetSpies(spyRequests);
+      spyRequests = trySetSpies(spyRequests, debugOutput === "spies");
       await step();
     }
   };
@@ -216,16 +222,30 @@ async function executeTest(testState: TestState): Promise<void> {
   }
 }
 
-function trySetSpies(spyRequests: SpyRequest[]): SpyRequest[] {
+function trySetSpies(spyRequests: SpyRequest[], debug: boolean): SpyRequest[] {
   return spyRequests.filter((spy) => {
     const host = spy.host();
 
-    // do not remove from array and retry next tick:
-    if (host == null) return true;
-    if (host[spy.target] == null) return true;
+    if (host == null || host[spy.target] == null) {
+      if (debug) {
+        console.log(
+          `[valestory] spy target "${spy.target.toString()}" not (yet) available`
+        );
+      }
 
-    // successfully added spy
+      // do not remove from array and retry in next test-step:
+      return true;
+    }
+
+    // successfully added spy -> remove from array
     host[spy.target] = spy.spyInstance;
+
+    if (debug) {
+      console.log(
+        `[valestory] successfully set spy on ${spy.target.toString()}:`,
+        host
+      );
+    }
 
     return false;
   });
@@ -238,6 +258,7 @@ function clone(
   return {
     steps: [...testState.steps, ...importedTestState.steps],
     spyRequests: [...testState.spyRequests, ...importedTestState.spyRequests],
+    debugOutput: importedTestState.debugOutput,
     // bug: rest of test state is not imported, e.g. test exec wrapper
   };
 }

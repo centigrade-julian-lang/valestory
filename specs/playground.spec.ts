@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { BehaviorSubject, tap } from "rxjs";
 import {
   call,
@@ -6,12 +8,13 @@ import {
   haveCalled,
   haveState,
   haveThrown,
+  initially,
   state,
   the,
   when,
-} from "./src";
-import { Valestory } from "./src/core/platform";
-import { TestExtendingOrExpecter } from "./src/core/types";
+} from "../src";
+import { Valestory } from "../src/core/platform";
+import { TestExtendingOrExpecter } from "../src/core/types";
 
 interface Address {
   street: string;
@@ -31,42 +34,6 @@ class ContactBook {
 }
 
 const service = new ContactBook();
-
-Valestory.config.override({
-  spyFactory: (value) => jest.fn().mockReturnValue(value),
-  didThrow: async (testBodyFn, negate, error) => {
-    if (negate) {
-      if (error != null) {
-        await expect(testBodyFn).rejects.not.toThrow(error);
-      } else {
-        await expect(testBodyFn()).resolves.not.toThrowError();
-      }
-    } else {
-      await expect(testBodyFn).rejects.toThrow(error);
-    }
-  },
-  hasBeenCalled: (spy: any, negate, times?: number, withArgs?: any[]) => {
-    if (negate) {
-      times != null
-        ? expect(spy).not.toHaveBeenCalledTimes(times)
-        : expect(spy).not.toHaveBeenCalled();
-
-      if (withArgs != null) {
-        expect(spy).not.toHaveBeenCalledWith(...withArgs);
-      }
-    } else {
-      times != null
-        ? expect(spy).toHaveBeenCalledTimes(times)
-        : expect(spy).toHaveBeenCalled();
-
-      if (withArgs != null) {
-        expect(spy).toHaveBeenCalledWith(...withArgs);
-      }
-    }
-  },
-  isEqual: (a: any, b: any, negate: boolean) =>
-    negate ? expect(a).not.toEqual(b) : expect(a).toEqual(b),
-});
 
 let wasExtensionExecuted = false;
 const markExtensionExecutedTrue = "markExtensionExecutedTrue" as const;
@@ -200,14 +167,39 @@ describe("ContactBook", () => {
       .to(equal(true));
   });
 
+  it("should compare numbers with tolerance", () => {
+    return initially()
+      .expect(the(2))
+      .to(equal(3, { deviationTolerance: 1 }));
+  });
+
+  it("should compare other values successfully", () => {
+    const x: unknown = {};
+
+    return initially().expect(the(x)).to(equal(x));
+  });
+
+  it("should spy on targets (custom spy)", () => {
+    const customSpyInstance = jest.fn();
+    const host = {
+      doSomething: () => {},
+    };
+
+    return when(the(host))
+      .has(state({ doSomething: customSpyInstance }))
+      .and(call("doSomething"))
+      .expect(the(host))
+      .to(haveCalled(customSpyInstance));
+  });
+
   it("should spy on targets (times 1)", () => {
     const host = {
       doSomething: () => {},
     };
 
-    return when(() => host)
+    return when(the(host))
       .calls("doSomething")
-      .expect(() => host)
+      .expect(the(host))
       .to(haveCalled("doSomething"));
   });
 
@@ -216,10 +208,10 @@ describe("ContactBook", () => {
       doSomething: () => {},
     };
 
-    return when(() => host)
+    return when(the(host))
       .calls("doSomething")
       .and(call("doSomething"))
-      .expect(() => host)
+      .expect(the(host))
       .to(haveCalled("doSomething", { times: 2 }));
   });
 
@@ -228,10 +220,10 @@ describe("ContactBook", () => {
       doSomething: () => {},
     };
 
-    return when(() => host)
+    return when(the(host))
       .calls("doSomething")
       .and(call("doSomething"))
-      .expect(() => host)
+      .expect(the(host))
       .to(haveCalled("doSomething", { times: null }));
   });
 
@@ -243,9 +235,9 @@ describe("ContactBook", () => {
       },
     };
 
-    return when(() => host)
+    return when(the(host))
       .calls("doSomething")
-      .expect(() => service)
+      .expect(the(service))
       .to(
         haveCalled("spyOnMe", { returnValue: true }),
         haveState({ called: true })
@@ -257,9 +249,9 @@ describe("ContactBook", () => {
       doSomething: (a: number, b: string) => {},
     };
 
-    return when(() => host)
+    return when(the(host))
       .calls("doSomething", 42, "hello")
-      .expect(() => host)
+      .expect(the(host))
       .to(haveCalled("doSomething", { withArgs: [42, "hello"] }));
   });
 

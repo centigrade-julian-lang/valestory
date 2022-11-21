@@ -1,6 +1,6 @@
 {
   "name": "valestory",
-  "version": "0.1.0-alpha.30",
+  "version": "0.1.0-alpha.37",
   "description": "",
   "homepage": "",
   "repository": {
@@ -8,10 +8,8 @@
     "url": ""
   },
   "scripts": {
-    "clean": "shx rm -rf dist",
-    "prebuild": "npm run clean && npm run build:types",
+    "prebuild": "shx rm -rf dist",
     "build": "ts-node tools/build.ts",
-    "build:types": "tsc src/index.ts --emitDeclarationOnly --declaration --declarationDir dist/types",
     "prepublish:lib": "npm run build && npm run test",
     "publish:lib": "cd dist && npm publish",
     "publish:alpha": "npm run publish:lib -- --tag alpha",
@@ -19,16 +17,18 @@
     "lint": "eslint src/**/*.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "jlang",
   "license": "ISC",
   "devDependencies": {
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "^29.2.0",
-    "@typescript-eslint/eslint-plugin": "^5.42.1",
+    "@typescript-eslint/eslint-plugin": "^5.43.0",
     "@typescript-eslint/parser": "^5.42.0",
     "esbuild": "^0.15.12",
     "eslint": "^8.26.0",
+    "eslint-import-resolver-typescript": "^3.5.2",
     "eslint-plugin-boundaries": "^3.0.0",
+    "eslint-plugin-import": "^2.26.0",
     "fs-extra": "^10.1.0",
     "jest": "^29.2.2",
     "rxjs": "^7.5.7",

@@ -1,21 +1,28 @@
 import { when } from "./index";
-import { Extension, ExtensionFn, Ref } from "./types";
+import { DebugMode, Extension, ExtensionFn, Ref } from "./types";
 
 export const createExtension = <T>(actionFn: ExtensionFn<T>): Extension<T> =>
   Object.assign(actionFn, { __valestoryType: "extension" } as const);
 
-export const initially = when();
+export const initially = () => when();
 
-export const log = (output?: (value: unknown) => unknown) =>
-  createExtension((value: Ref<unknown>, { addTestStep }) => {
+export const log = (output?: DebugMode | ((value: any) => any)) =>
+  createExtension((value: Ref<any>, { addTestStep, debug }) => {
+    if (output === "spies") {
+      return debug("spies");
+    }
+
     addTestStep(() => {
       const resolved = value();
-      const additionalOutput = output?.(resolved) ?? [];
-      const valuesToPrint = Array.isArray(additionalOutput)
-        ? additionalOutput
-        : [additionalOutput];
 
-      output ? console.log(...valuesToPrint) : console.log(resolved);
+      if (typeof output === "function") {
+        const additionalOutput = output?.(resolved) ?? [];
+        const valuesToPrint = Array.isArray(additionalOutput)
+          ? additionalOutput
+          : [additionalOutput];
+
+        output != null ? console.log(...valuesToPrint) : console.log(resolved);
+      }
     });
   });
 
