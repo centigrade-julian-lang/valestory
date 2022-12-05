@@ -26,7 +26,7 @@ export const log = (output?: DebugMode | ((value: any) => any)) =>
     });
   });
 
-export function the<T, K extends keyof T>(value: T): () => T;
+export function the<T>(value: T): () => T;
 export function the<T, K extends keyof T>(value: T, access: K): () => T[K];
 export function the<T, R>(value: T, access: (value: T) => R): () => R;
 export function the<T, K extends keyof T, R>(
