@@ -45,6 +45,8 @@ Valestory.extensions.register(
   }
 );
 
+const delay = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms));
+
 describe("ContactBook", () => {
   const somethingAsync = (delay = 1000) =>
     createExtension((subject: any, meta) => {
@@ -72,6 +74,22 @@ describe("ContactBook", () => {
       return when(the(service)).does(state(stateDef));
     }
   }
+
+  fit("should await the call when using call().andAwait()", () => {
+    const service = new (class {
+      isDone = false;
+      async waitThenSetDoneToTrue() {
+        await delay();
+        this.isDone = true;
+      }
+    })();
+
+    return when(the(service))
+      .calls("waitThenSetDoneToTrue")
+      .andAwait()
+      .expect(the(service))
+      .to(haveState({ isDone: true }));
+  });
 
   it("should produce new tests each time called when", () => {
     const a = when().expect().to();

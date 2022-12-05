@@ -4,6 +4,8 @@ export type Extension<T> = ExtensionFn<T> & {
   __valestoryType: "extension";
 };
 
+export type Fn<I extends any[] = any[], O = any> = (...args: I) => O;
+
 export interface TestEnv {
   negateAssertion: boolean;
   addTestStep: (...steps: TestStep[]) => void;

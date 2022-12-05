@@ -1,5 +1,5 @@
 import { createExtension } from "../../core/helper";
-import { Ref } from "../../core/types";
+import { Fn, Ref } from "../../core/types";
 
 export function call<T extends {}>(
   map: keyof T | ((input: T) => any),
@@ -9,8 +9,9 @@ export function call<T extends {}>(
     addTestStep(() => {
       const resolved = target();
       const mapped =
-        typeof map === "string" ? resolved[map] : (map as Function)(resolved);
-      const fn = mapped as Function;
+        typeof map === "string" ? resolved[map] : (map as Fn)(resolved);
+      const fn = mapped as Fn;
+
       fn.call(resolved, ...args);
     });
   });
