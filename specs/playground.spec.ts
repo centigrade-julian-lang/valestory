@@ -75,7 +75,7 @@ describe("ContactBook", () => {
     }
   }
 
-  fit("should await the call when using call().andAwait()", () => {
+  it("should await the call when using call().andAwait()", () => {
     const service = new (class {
       isDone = false;
       async waitThenSetDoneToTrue() {
@@ -85,10 +85,24 @@ describe("ContactBook", () => {
     })();
 
     return when(the(service))
-      .calls("waitThenSetDoneToTrue")
-      .andAwait()
+      .does(call("waitThenSetDoneToTrue").andAwait())
       .expect(the(service))
       .to(haveState({ isDone: true }));
+  });
+
+  it("should not await the call without using call().andAwait()", () => {
+    const service = new (class {
+      isDone = false;
+      async waitThenSetDoneToTrue() {
+        await delay();
+        this.isDone = true;
+      }
+    })();
+
+    return when(the(service))
+      .does(call("waitThenSetDoneToTrue"))
+      .expect(the(service))
+      .to(haveState({ isDone: false }));
   });
 
   it("should produce new tests each time called when", () => {

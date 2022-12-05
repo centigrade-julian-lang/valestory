@@ -5,14 +5,21 @@ export function call<T extends {}>(
   map: keyof T | ((input: T) => any),
   ...args: any[]
 ) {
-  return createExtension((target: Ref<T>, { addTestStep }) => {
-    addTestStep(() => {
-      const resolved = target();
-      const mapped =
-        typeof map === "string" ? resolved[map] : (map as Fn)(resolved);
-      const fn = mapped as Fn;
+  const caller = (awaitFn: boolean) =>
+    createExtension((target: Ref<T>, { addTestStep }) => {
+      addTestStep(() => {
+        const resolved = target();
+        const mapped =
+          typeof map === "string" ? resolved[map] : (map as Fn)(resolved);
+        const fn = mapped as Fn;
 
-      fn.call(resolved, ...args);
+        if (awaitFn) return fn.call(resolved, ...args);
+        // hint: fire and forget
+        else fn.call(resolved, ...args);
+      });
     });
+
+  return Object.assign(caller(false), {
+    andAwait: () => caller(true),
   });
 }
