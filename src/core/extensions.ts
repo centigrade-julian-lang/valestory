@@ -17,6 +17,8 @@ export class ValestoryApiExtensions {
       );
     }
 
+    // hint: we checked that the extensions have the requested item above:
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.extensions.get(name)!;
   }
 
