@@ -11,10 +11,11 @@ export class ValestoryApiExtensions {
     name: string
     // eslint-disable-next-line @typescript-eslint/ban-types
   ): (apiToContinueWith: any) => Function {
-    if (!this.extensions.has(name))
+    if (!this.extensions.has(name)) {
       throw new Error(
         `[valestory] No extension registered with name "${name}".`
       );
+    }
 
     return this.extensions.get(name)!;
   }
