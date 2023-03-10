@@ -35,7 +35,6 @@ export interface TestState {
   debugOutput?: DebugMode;
   testExecutionWrapperFn?: TestExecutionWrapperFn;
 }
-export interface InternalTestState extends TestState {}
 export interface SpyRequest<T = any> {
   host: Ref<T>;
   target: keyof T;
