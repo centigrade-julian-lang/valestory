@@ -171,6 +171,19 @@ describe("ContactBook", () => {
     }
   });
 
+  it("should reset the original value after test", async () => {
+    const func = () => 42;
+    const target = { func };
+
+    await when(() => target)
+      .calls("func")
+      .expect(() => target)
+      .to(haveCalled("func", { returnValue: 12 }));
+
+    expect(target.func).toBe(func);
+    expect(target.func()).toBe(42);
+  });
+
   it("should allow to pass extension fn to when", () => {
     const state = { changed: false };
     const update = createExtension((_, { addTestStep }) => {
