@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 export type Ref<T> = () => T;
 export type ExtensionFn<T> = (target: Ref<T>, meta: TestEnv) => void;
 export type Extension<T> = ExtensionFn<T> & {
@@ -68,7 +69,11 @@ export type WhenStatement<T> = DoesStatement<T> &
   TargetedExtension &
   TestImport;
 export type AndStatement<T> = WhenStatement<T>;
-export type TestExpectation = <T>(target?: Ref<T>) => TestEnding<T>;
+export interface TestExpectation {
+  <T>(target?: Ref<T>): TestEnding<T>;
+  (...expectation: TestState[]): Promise<void>;
+}
+
 export interface TestEnding<Target> {
   not: Omit<TestEnding<Target>, "not">;
   will: TestExpectator<Target, TestState>;

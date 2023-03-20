@@ -1,5 +1,6 @@
 // TODO: turn this into an api extension:
 // eslint-disable-next-line boundaries/element-types
+import { flatten } from "array-flatten";
 import { call } from "../extensions";
 import { ValestoryConfig } from "./config";
 import { Valestory } from "./platform";
@@ -30,7 +31,7 @@ const createTestApi = <T = undefined>(
     if (isTestState(subjectOrExtensionOrTestState)) {
       return createActor(
         () => subject?.(),
-        clone(subjectOrExtensionOrTestState, baseState)
+        clone(baseState, subjectOrExtensionOrTestState)
       )();
     }
 
@@ -108,24 +109,41 @@ function createExpectOrAndApi<TSubject>(
   return {
     ...testState,
     and: createTestApi(testState, subject) as any,
-    expect: <TObject>(object: Ref<TObject>): TestEnding<TObject> => {
-      const assertions = (negate: boolean) => {
-        return {
-          will(...expectations: Extension<TObject>[]) {
-            addTestStep(testState, expectations, object, negate);
-            return testState;
-          },
-          async to(...expectations: Extension<TObject>[]) {
-            addTestStep(testState, expectations, object, negate);
-            await executeTest(testState);
-          },
-        };
-      };
+    expect: expect(testState) as any,
+  };
+}
 
-      return Object.assign(assertions(false), {
-        not: assertions(true),
-      });
-    },
+function expect(
+  state: TestState
+): (...expectations: TestState[]) => Promise<void>;
+function expect<TObject>(
+  state: TestState
+): (assertion: Ref<TObject>) => TestEnding<TObject>;
+function expect<TObject>(
+  testState: TestState
+): (object: Ref<TObject> | TestState) => TestEnding<TObject> | Promise<void> {
+  return (object: Ref<TObject> | TestState, ...expectations: TestState[]) => {
+    if (isTestState(object)) {
+      const mergedTestState = clone(testState, object, ...expectations);
+      return executeTest(mergedTestState);
+    }
+
+    const assertions = (opts: { negate: boolean }) => {
+      return {
+        will(...expectations: Extension<TObject>[]) {
+          addTestStep(testState, expectations, object, opts.negate);
+          return testState;
+        },
+        async to(...expectations: Extension<TObject>[]) {
+          addTestStep(testState, expectations, object, opts.negate);
+          await executeTest(testState);
+        },
+      };
+    };
+
+    return Object.assign(assertions({ negate: false }), {
+      not: assertions({ negate: true }),
+    });
   };
 }
 
@@ -252,13 +270,19 @@ function trySetSpies(spyRequests: SpyRequest[], debug: boolean): SpyRequest[] {
 }
 
 function clone(
-  importedTestState: TestState,
-  testState: TestState = { spyRequests: [], steps: [] }
+  baseState: TestState = { spyRequests: [], steps: [] },
+  ...importedStates: TestState[]
 ): TestState {
+  const steps = flatten(importedStates.map((state) => state.steps));
+  const spyRequests = flatten(importedStates.map((state) => state.spyRequests));
+  const debugOutput = importedStates.find(
+    (state) => state.debugOutput
+  )?.debugOutput;
+
   return {
-    steps: [...testState.steps, ...importedTestState.steps],
-    spyRequests: [...testState.spyRequests, ...importedTestState.spyRequests],
-    debugOutput: importedTestState.debugOutput,
+    steps: [...baseState.steps, ...steps],
+    spyRequests: [...baseState.spyRequests, ...spyRequests],
+    debugOutput: debugOutput,
     // bug: rest of test state is not imported, e.g. test exec wrapper
   };
 }

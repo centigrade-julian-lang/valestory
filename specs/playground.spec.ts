@@ -423,7 +423,7 @@ describe("ContactBook", () => {
       .to(haveState({ numberOfContacts: 24 }));
   });
 
-  it("should allow for intermediate checks (via will)", () => {
+  it("should allow for intermediate extensions (via will)", () => {
     const was = { executed: false };
     const check = createExtension(() => {
       was.executed = true;
@@ -441,7 +441,7 @@ describe("ContactBook", () => {
       .to(haveState({ executed: true }));
   });
 
-  it("should allow for intermediate checks (via and)", () => {
+  it("should allow for intermediate extensions (via and)", () => {
     const was = { executed: false };
     const check = createExtension(() => {
       was.executed = true;
@@ -452,5 +452,21 @@ describe("ContactBook", () => {
       .and(check)
       .expect(() => was)
       .to(haveState({ executed: true }));
+  });
+
+  it("should allow pre-formulated expectations in expect api", () => {
+    const object = { magicNumber: Number(42) };
+
+    const thatObjectMagicNumberIsNumber = when()
+      .expect(the(object, "magicNumber"))
+      .will(beInstanceOf("number"));
+    const thatObjectMagicNumberIs42 = when()
+      .expect(the(object, "magicNumber"))
+      .will(equal(42));
+
+    return when().expect(
+      thatObjectMagicNumberIsNumber,
+      thatObjectMagicNumberIs42
+    );
   });
 });
