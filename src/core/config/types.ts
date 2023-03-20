@@ -2,6 +2,7 @@ import { ComparisonOpts } from "../../extensions/expectations";
 
 export interface ValestoryConfiguration {
   isEqual: (a: any, b: any, negated: boolean, opts: ComparisonOpts) => void;
+  beInstanceOf: (a: any, b: any, negated: boolean) => void;
   hasBeenCalled: (
     spy: any,
     negate: boolean,

@@ -47,4 +47,19 @@ Valestory.config.override({
       negate ? expect(a).not.toEqual(b) : expect(a).toEqual(b);
     }
   },
+  beInstanceOf: (a, b, negated) => {
+    if (typeof b === "string") {
+      if (negated) {
+        expect(typeof a).not.toEqual(b);
+      } else {
+        expect(typeof a).toEqual(b);
+      }
+    } else {
+      if (negated) {
+        expect(a).not.toBeInstanceOf(b);
+      } else {
+        expect(a).toBeInstanceOf(b);
+      }
+    }
+  },
 });

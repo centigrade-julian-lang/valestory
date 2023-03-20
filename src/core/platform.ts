@@ -13,6 +13,9 @@ export const check = (
   hasBeenCalled: (times?: number) => {
     return ValestoryConfig.get("hasBeenCalled")(value, negate, times);
   },
+  beInstanceOf: (b: any) => {
+    return ValestoryConfig.get("beInstanceOf")(value, b, negate);
+  },
 });
 
 export class Valestory {

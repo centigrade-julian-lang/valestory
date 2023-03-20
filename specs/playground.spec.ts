@@ -15,7 +15,14 @@ import {
 } from "../src";
 import { Valestory } from "../src/core/platform";
 import { TestExtendingOrExpecter } from "../src/core/types";
+import {
+  beInstanceOf,
+  TypeOfIdentifier,
+} from "../src/extensions/expectations/be-instance-of";
 
+class MyCustomType {
+  public x = 42;
+}
 interface Address {
   street: string;
   houseNo: number;
@@ -204,6 +211,52 @@ describe("ContactBook", () => {
   it("should allow to wrap the test body (e.g. to check if it threw) (negated)", () => {
     return when().expect().not.to(haveThrown());
   });
+
+  (
+    [
+      { type: "boolean", value: false },
+      { type: "boolean", value: true },
+      { type: "function", value: () => {} },
+      { type: "number", value: 0 },
+      { type: "number", value: 42 },
+      { type: "number", value: -42 },
+      { type: "object", value: {} },
+      { type: "object", value: [] },
+      { type: "string", value: "" },
+      { type: "string", value: "str" },
+      { type: "symbol", value: Symbol() },
+      { type: "undefined", value: undefined },
+    ] as { type: TypeOfIdentifier; value: any }[]
+  ).forEach(({ type, value }) => {
+    it("should check the type of a given variable with typeof operator", () =>
+      when().expect(the(value)).to(beInstanceOf(type)));
+  });
+
+  (
+    [
+      { type: "undefined", value: false },
+      { type: "undefined", value: true },
+      { type: "symbol", value: () => {} },
+      { type: "string", value: 0 },
+      { type: "string", value: 42 },
+      { type: "string", value: -42 },
+      { type: "number", value: {} },
+      { type: "number", value: [] },
+      { type: "object", value: "" },
+      { type: "object", value: "str" },
+      { type: "function", value: Symbol() },
+      { type: "boolean", value: undefined },
+    ] as { type: TypeOfIdentifier; value: any }[]
+  ).forEach(({ type, value }) => {
+    it("should check the type of a given variable with typeof operator (not)", () =>
+      when().expect(the(value)).not.to(beInstanceOf(type)));
+  });
+
+  it("should check the type of a given variable with instanceof operator", () =>
+    when().expect(the(new MyCustomType())).to(beInstanceOf(MyCustomType)));
+
+  it("should check the type of a given variable with instanceof operator (not)", () =>
+    when().expect(the([])).not.to(beInstanceOf(MyCustomType)));
 
   it("should execute api-extension functions", () => {
     return (when(() => null) as any)
