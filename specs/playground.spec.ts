@@ -16,8 +16,8 @@ import {
 import { Valestory } from "../src/core/platform";
 import { TestExtendingOrExpecter } from "../src/core/types";
 import {
-  beInstanceOf,
   TypeOfIdentifier,
+  beInstanceOf,
 } from "../src/extensions/expectations/be-instance-of";
 
 class MyCustomType {
@@ -288,6 +288,24 @@ describe("ContactBook", () => {
       .and(call("doSomething"))
       .expect(the(host))
       .to(haveCalled(customSpyInstance));
+  });
+
+  it("should spy on targets (target based opts)", () => {
+    const host = {
+      number: 1,
+      increment: function () {
+        this.number += 1;
+        this.finish(this.number);
+      },
+      finish: function (state: number) {
+        console.log(state);
+      },
+    };
+
+    return when(the(host))
+      .does(call("increment"))
+      .expect(the(host))
+      .to(haveCalled("finish", { withArgs: (h) => [h.number] }));
   });
 
   it("should spy on targets (times 1)", () => {

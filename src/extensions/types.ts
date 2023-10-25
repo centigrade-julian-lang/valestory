@@ -1,5 +1,5 @@
-export interface CallAssertion {
+export interface CallAssertion<TTarget> {
   returnValue?: any;
   times?: number | null;
-  withArgs?: any[];
+  withArgs?: any[] | ((target: TTarget) => any[]);
 }

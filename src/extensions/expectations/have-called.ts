@@ -8,7 +8,7 @@ const EMPTY_VALUE = Symbol("Value.Empty");
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const haveCalled = <TTarget extends {}>(
   target: keyof TTarget | object,
-  opts: CallAssertion = {}
+  opts: CallAssertion<TTarget> = {}
 ) =>
   createExtension(
     (host: Ref<TTarget>, { setSpy, addTestStep, negateAssertion }) => {
@@ -50,7 +50,12 @@ export const haveCalled = <TTarget extends {}>(
         // the code execution flow
         tryRestoreOriginal();
 
-        checkHasBeenCalled(spy, negateAssertion, times, opts.withArgs);
+        const withArgs =
+          typeof opts.withArgs === "function"
+            ? opts.withArgs(host())
+            : opts.withArgs;
+
+        checkHasBeenCalled(spy, negateAssertion, times, withArgs);
       });
     }
   );
