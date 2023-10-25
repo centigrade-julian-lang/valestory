@@ -29,12 +29,12 @@ class Program {
     await build({
       ...commonBuildOpts,
       format: "esm",
-      outfile: cwdPath("./dist/mjs/index.js"),
+      outfile: cwdPath("./dist/mjs/index.mjs"),
     });
     await build({
       ...commonBuildOpts,
       format: "cjs",
-      outfile: cwdPath("./dist/cjs/index.js"),
+      outfile: cwdPath("./dist/cjs/index.cjs"),
     });
   }
 
@@ -63,12 +63,12 @@ class Program {
     const logistics = {
       files: ["**/*"],
       types: "./types/index.d.ts",
-      main: "./cjs/index.js",
-      module: "./mjs/index.js",
+      main: "./cjs/index.cjs",
+      module: "./mjs/index.mjs",
       exports: {
         ".": {
-          import: "./mjs/index.js",
-          require: "./cjs/index.js",
+          import: "./mjs/index.mjs",
+          require: "./cjs/index.cjs",
         },
       },
     };
