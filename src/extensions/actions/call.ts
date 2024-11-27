@@ -19,7 +19,9 @@ export function call<T extends {}>(
       });
     });
 
-  return Object.assign(caller(false), {
+  return Object.assign(caller(true), {
+    /** @deprecated default call() will await automatically, so just use `call(...)` without `.andAwait()` */
     andAwait: () => caller(true),
+    asFireAndForget: () => caller(false),
   });
 }
