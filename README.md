@@ -15,7 +15,6 @@ To be framework agnostic, you need to provide an adapter (for now) yourself, pas
 This library is in alpha state and brand-new. Thus it does not provide a lot out-of-the-box. The following features are on the roadmap:
 
 - provide adapter for jasmine and jest via separate projects
-- add support for negating tests via `.not.to(...)`
 - add more common functionality, for different areas in separate projects
   - `valestory-dom`: valestory-extensions helping with pure html-javascript tests
   - `valestory-angular`: valestory-extensions helping with angular testing scenarios, or maybe migrating `@centigrade/ngtx` to use valestory as its foundation.
