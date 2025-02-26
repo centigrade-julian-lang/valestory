@@ -1,9 +1,9 @@
-import { exec } from "child_process";
-import { build, BuildOptions } from "esbuild";
-import { copyFile, outputFile } from "fs-extra";
-import { resolve } from "path";
-import { cwd } from "process";
-import * as packageJson from "../package.json";
+import { exec } from 'child_process';
+import { build, BuildOptions } from 'esbuild';
+import { copyFile, outputFile } from 'fs-extra';
+import { resolve } from 'path';
+import { cwd } from 'process';
+import * as packageJson from '../package.json';
 
 const cwdPath = (path: string) => {
   return resolve(cwd(), path);
@@ -19,28 +19,28 @@ class Program {
 
   private static async buildLibrary(production: boolean) {
     const commonBuildOpts: BuildOptions = {
-      entryPoints: [cwdPath("./src/index.ts")],
-      platform: "node",
-      target: "es2020",
+      entryPoints: [cwdPath('./src/index.ts')],
+      platform: 'node',
+      target: 'es2020',
       bundle: true,
       minify: production,
     };
 
     await build({
       ...commonBuildOpts,
-      format: "esm",
-      outfile: cwdPath("./dist/mjs/index.mjs"),
+      format: 'esm',
+      outfile: cwdPath('./dist/mjs/index.mjs'),
     });
     await build({
       ...commonBuildOpts,
-      format: "cjs",
-      outfile: cwdPath("./dist/cjs/index.cjs"),
+      format: 'cjs',
+      outfile: cwdPath('./dist/cjs/index.cjs'),
     });
   }
 
   private static async buildTypes() {
     await this.runCommand(
-      "tsc src/index.ts --emitDeclarationOnly --declaration --declarationDir dist/types"
+      'tsc src/index.ts --emitDeclarationOnly --declaration --declarationDir dist/types',
     );
   }
 
@@ -61,14 +61,14 @@ class Program {
       repository,
     };
     const logistics = {
-      files: ["**/*"],
-      types: "./types/index.d.ts",
-      main: "./cjs/index.cjs",
-      module: "./mjs/index.mjs",
+      files: ['**/*'],
+      types: './types/index.d.ts',
+      main: './cjs/index.cjs',
+      module: './mjs/index.mjs',
       exports: {
-        ".": {
-          import: "./mjs/index.mjs",
-          require: "./cjs/index.cjs",
+        '.': {
+          import: './mjs/index.mjs',
+          require: './cjs/index.cjs',
         },
       },
     };
@@ -84,13 +84,13 @@ class Program {
     };
 
     await outputFile(
-      cwdPath("./dist/package.json"),
-      JSON.stringify(output, null, production ? undefined : 2)
+      cwdPath('./dist/package.json'),
+      JSON.stringify(output, null, production ? undefined : 2),
     );
   }
 
   private static async copyDocs() {
-    return copyFile(cwdPath("./README.md"), cwdPath("./dist/README.md"));
+    return copyFile(cwdPath('./README.md'), cwdPath('./dist/README.md'));
   }
 
   private static async runCommand(command: string): Promise<void> {
@@ -104,8 +104,8 @@ class Program {
 }
 
 const args = process.argv.slice(1);
-const production = args.includes("--prod");
+const production = args.includes('--prod');
 
 Program.main(production)
   .catch(console.error)
-  .then(() => console.log("Built."));
+  .then(() => console.log('Built.'));
