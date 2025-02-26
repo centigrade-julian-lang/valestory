@@ -69,6 +69,7 @@ class Program {
         '.': {
           import: './mjs/index.mjs',
           require: './cjs/index.cjs',
+          types: './types/index.d.ts',
         },
       },
     };
